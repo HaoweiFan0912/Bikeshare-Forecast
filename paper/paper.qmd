@@ -1,10 +1,9 @@
 ---
-title: "My title"
-subtitle: "My subtitle if needed"
+title: "Analysis and Prediction of Shared Bicycle Usage at the University of Toronto St. George Campus"
+subtitle: "Main Finding TBD"
 author: 
-  - First author
-  - Another author
-thanks: "Code and data are available at: [https://github.com/RohanAlexander/starter_folder](https://github.com/RohanAlexander/starter_folder)."
+  - Haowei Fan
+thanks: "Code and data are available at: https://github.com/HaoweiFan0912/Bikeshare-Forecast.git"
 date: today
 date-format: long
 abstract: "First sentence. Second sentence. Third sentence. Fourth sentence."
@@ -14,13 +13,32 @@ bibliography: references.bib
 ---
 
 ```{r}
+#| echo: false
 #| include: false
 #| warning: false
 #| message: false
+#### Workspace setup ####
+set.seed(912)
+# List of necessary packages
+packages <- c("tidyverse", "dplyr", "arrow", "sf", "ggplot2", "ggspatial", "RColorBrewer")
+# Install missing packages
+missing_packages <- packages[!(packages %in% installed.packages()[, "Package"])]
+install.packages(missing_packages)
+# Load packages
+lapply(packages, library, character.only = TRUE)
 
-library(tidyverse)
-library(palmerpenguins)
+#### Read data ####
+
+start <- read_parquet(here::here("data/02-analysis_data/start.parquet"))
+stop <- read_parquet(here::here("data/02-analysis_data/stop.parquet"))
 ```
+
+```{r}
+
+```
+
+
+
 
 
 # Introduction
