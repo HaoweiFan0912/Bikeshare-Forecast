@@ -1,0 +1,107 @@
+#### Preamble ####
+# Purpose: Models... [...UPDATE THIS...]
+# Author: Rohan Alexander [...UPDATE THIS...]
+# Date: 11 February 2023 [...UPDATE THIS...]
+# Contact: rohan.alexander@utoronto.ca [...UPDATE THIS...]
+# License: MIT
+# Pre-requisites: [...UPDATE THIS...]
+# Any other information needed? [...UPDATE THIS...]
+
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+#### Workspace setup ####
+set.seed(912)
+# List of necessary packages
+packages <- c("arrow", "lubridate", "tidyverse")
+# Install missing packages
+missing_packages <- packages[!(packages %in% installed.packages()[, "Package"])]
+install.packages(missing_packages)
+# Load packages
+lapply(packages, library, character.only = TRUE)
+
+#### Read data ####
+start <- read_parquet(here::here("data/02-analysis_data/start.parquet"))
+stop <- read_parquet(here::here("data/02-analysis_data/stop.parquet"))
+```
+
+```{r}
+#| warning: false
+#| message: false
+start_asdate <- start 
+start_asdate$time <- as.Date(start_asdate$time)
+
+
+daily_counts <- start_asdate %>%
+  group_by(time) %>%
+  summarise(total_count = sum(count))
+
+ggplot(data = daily_counts, aes(x = time, y = total_count)) +
+  geom_point() +
+  labs(title = "Daily usage from January 2017 to September 2024", x = "Time", y = "Count") +
+  theme_minimal()+  
+  geom_smooth(method = "lm")  
+```
+
+```{r}
+options(scipen = 999)
+
+start_astime <- start 
+start_astime$time <- as.POSIXct(start_astime$time)
+
+
+start_astime <- start_astime %>%
+  mutate(time_interval = case_when(
+    hour(time) >= 0 & hour(time) < 4 ~ "00:00 - 04:00",
+    hour(time) >= 4 & hour(time) < 8 ~ "04:00 - 08:00",
+    hour(time) >= 8 & hour(time) < 12 ~ "08:00 - 12:00",
+    hour(time) >= 12 & hour(time) < 16 ~ "12:00 - 16:00",
+    hour(time) >= 16 & hour(time) < 20 ~ "16:00 - 20:00",
+    hour(time) >= 20 & hour(time) < 24 ~ "20:00 - 00:00"
+  ))
+
+
+total_counts <- start_astime %>%
+  group_by(time_interval) %>%
+  summarise(count = sum(count, na.rm = TRUE))
+
+
+ggplot(data = total_counts, aes(x = time_interval, y = count, fill = time_interval)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Total usage during different time periods from January 2017 to September 2024", 
+       x = "Time interval", y = "Count") +
+  theme_minimal() +
+  theme(legend.position = "none") 
+```
+```{r, fig.width=10}
+
+options(scipen = 999)
+
+
+average_counts_start <- start %>%
+  group_by(station_name) %>%
+  summarize(average_count = mean(count, na.rm = TRUE))
+
+average_counts_stop <- stop %>%
+  group_by(station_name) %>%
+  summarize(average_count = mean(count, na.rm = TRUE))
+
+merged_data <- merge(average_counts_start, average_counts_stop, by.x = "station_name", by.y = "station_name", all = TRUE)
+
+
+merged_data <- merged_data %>%
+  mutate(count_difference = floor(average_count.y - average_count.x))
+
+
+ggplot(merged_data, aes(x = station_name, y = count_difference)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(title = "Four-hour average of bicycle parking and departure volumes for each station",
+       x = "Station Name",
+       y = "Parking volume minus departure volume")+
+  ylim(-12, 3)+
+  coord_flip()
+```
+
