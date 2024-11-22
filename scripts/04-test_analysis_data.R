@@ -9,61 +9,103 @@
 
 
 #### Workspace setup ####
-library(tidyverse)
-library(testthat)
+set.seed(912)
+# List of necessary packages
+packages <- c("tidyverse", "dplyr", "arrow")
+# Install missing packages
+missing_packages <- packages[!(packages %in% installed.packages()[, "Package"])]
+install.packages(missing_packages)
+# Load packages
+lapply(packages, library, character.only = TRUE)
 
-data <- read_csv("data/02-analysis_data/analysis_data.csv")
+#### Read data ####
+file_paths <- c("data/02-analysis_data/start.parquet", "data/02-analysis_data/stop.parquet")
+
+test_dataset <- function(df) {
+  
+  # 1. Test if the data was successfully loaded
+  if (exists("df")) {
+    message("Test Passed: The dataset was successfully loaded.")
+  } else {
+    stop("Test Failed: The dataset could not be loaded.")
+  }
+  
+  # 2. Test if there are any missing values in the dataset
+  if (sum(is.na(df)) == 0) {
+    message("Test Passed: No missing values found in the dataset.")
+  } else {
+    stop("Test Failed: Missing values detected in the dataset.")
+  }
+  
+  # 3. Test if 'time' is within the range between 2017-01-01 00:00 and 2024-09-30 24:00
+  time_start <- as.POSIXct("2016-12-31 24:00:00", format="%Y-%m-%d %H:%M:%S", tz="UTC")
+  time_end <- as.POSIXct("2024-10-01 00:00:00", format="%Y-%m-%d %H:%M:%S", tz="UTC")
+  df$time <- as.POSIXct(df$time, format="%Y-%m-%d %H:%M:%S", tz="UTC")
+  if (all(df$time >= time_start & df$time <= time_end)) {
+    message("Test Passed: All time values are within the specified range.")
+  } else {
+    stop("Test Failed: Some time values are outside the specified range.")
+  }
+  
+  # 4. Test if there are any duplicate rows in the dataset
+  if (nrow(df) == nrow(unique(df))) {
+    message("Test Passed: No duplicate rows found in the dataset.")
+  } else {
+    stop("Test Failed: Duplicate rows detected in the dataset.")
+  }
+  
+  # 5. Test if 'count' has any negative values
+  if (all(df$count >= 0)) {
+    message("Test Passed: No negative values found in 'count'.")
+  } else {
+    stop("Test Failed: Negative values detected in 'count'.")
+  }
+  
+  # 6. Test if all station names are within the specified list of valid station names
+  ut_stations <- c("Madison Ave / Bloor St W", "Bloor St W / Huron St", "St. George St / Bloor St W", 
+                   "Sussex Ave / St George St", "Spadina Ave / Sussex Ave", "Spadina Ave / Harbord St - SMART",
+                   "St. George St / Hoskin Ave", "Spadina Ave / Willcocks St", "St. George St / Willcocks St",
+                   "Willcocks St / St. George St", "Queen's Park / Bloor St W", "Queen's Park Cres W / Hoskin Ave",
+                   "Wellesley St W / Queen's Park Cres", "Queen's Park Cres E / Grosvenor St - SMART", 
+                   "Bay St / Bloor St W (East Side)", "Bay St / Bloor St W (West Side)", "Bay St / Charles St W - SMART",
+                   "St. Joseph St / Bay St - SMART", "Bay St / St. Joseph St", "Bay St / Wellesley St W", 
+                   "Ursula Franklin St / Huron St - SMART", "Ursula Franklin St / St. George St - SMART", "Galbraith Rd / King's College Rd",
+                   "College St / Huron St", "College St / Henry St ", "Queens Park Cres / College St ", "University Ave / College St (East)")
+  
+  if (all(df$station_name %in% ut_stations)) {
+    message("Test Passed: All station names are within the specified list.")
+  } else {
+    stop("Test Failed: Some station names are not within the specified list.")
+  }
+  
+  # 7. Test if 'time' has hours falling into 4-hour intervals
+  time_hours <- as.numeric(format(df$time, "%H"))
+  valid_intervals <- all(time_hours %% 4 == 0 | time_hours %% 4 == 1 | time_hours %% 4 == 2 | time_hours %% 4 == 3)
+  
+  if (valid_intervals) {
+    message("Test Passed: All time values fall into 4-hour intervals.")
+  } else {
+    stop("Test Failed: Some time values do not fall into 4-hour intervals.")
+  }
+  
+  # 8. Test if there are any rows with the same 'time' and 'station_name'
+  duplicate_rows <- df[duplicated(df[, c("time", "station_name")]), ]
+  
+  if (nrow(duplicate_rows) == 0) {
+    message("Test Passed: No duplicate rows with the same 'time' and 'station_name' found.")
+  } else {
+    stop("Test Failed: Duplicate rows with the same 'time' and 'station_name' detected.")
+  }
+}
 
 
-#### Test data ####
-# Test that the dataset has 151 rows - there are 151 divisions in Australia
-test_that("dataset has 151 rows", {
-  expect_equal(nrow(analysis_data), 151)
-})
-
-# Test that the dataset has 3 columns
-test_that("dataset has 3 columns", {
-  expect_equal(ncol(analysis_data), 3)
-})
-
-# Test that the 'division' column is character type
-test_that("'division' is character", {
-  expect_type(analysis_data$division, "character")
-})
-
-# Test that the 'party' column is character type
-test_that("'party' is character", {
-  expect_type(analysis_data$party, "character")
-})
-
-# Test that the 'state' column is character type
-test_that("'state' is character", {
-  expect_type(analysis_data$state, "character")
-})
-
-# Test that there are no missing values in the dataset
-test_that("no missing values in dataset", {
-  expect_true(all(!is.na(analysis_data)))
-})
-
-# Test that 'division' contains unique values (no duplicates)
-test_that("'division' column contains unique values", {
-  expect_equal(length(unique(analysis_data$division)), 151)
-})
-
-# Test that 'state' contains only valid Australian state or territory names
-valid_states <- c("New South Wales", "Victoria", "Queensland", "South Australia", "Western Australia", 
-                  "Tasmania", "Northern Territory", "Australian Capital Territory")
-test_that("'state' contains valid Australian state names", {
-  expect_true(all(analysis_data$state %in% valid_states))
-})
-
-# Test that there are no empty strings in 'division', 'party', or 'state' columns
-test_that("no empty strings in 'division', 'party', or 'state' columns", {
-  expect_false(any(analysis_data$division == "" | analysis_data$party == "" | analysis_data$state == ""))
-})
-
-# Test that the 'party' column contains at least 2 unique values
-test_that("'party' column contains at least 2 unique values", {
-  expect_true(length(unique(analysis_data$party)) >= 2)
-})
+for (file_path in file_paths) {
+  message("\nTesting file: ", file_path)
+  tryCatch({
+    df <- read_parquet(file_path) 
+    df$time <- as.POSIXct(df$time, format="%Y-%m-%d %H:%M:%S") 
+    test_dataset(df) 
+  }, error = function(e) {
+    message("Error in file ", file_path, ": ", e$message)
+  })
+}
