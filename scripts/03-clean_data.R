@@ -141,8 +141,8 @@ colnames(full_data_start)[colnames(full_data_start) == "interval"] <- "time"
 colnames(full_data_stop)[colnames(full_data_stop) == "interval"] <- "time"
 colnames(full_data_start)[colnames(full_data_start) == "from_station_name"] <- "station_name"
 colnames(full_data_stop)[colnames(full_data_stop) == "to_station_name"] <- "station_name"
-full_data_start <- full_data_start %>% clean_names()
-full_data_stop <- full_data_stop %>% clean_names()
+full_data_start <- full_data_start %>% janitor::clean_names()
+full_data_stop <- full_data_stop %>% janitor::clean_names()
 
 #### Save data ####
 write_parquet(full_data_start, "data/02-analysis_data/start.parquet")
