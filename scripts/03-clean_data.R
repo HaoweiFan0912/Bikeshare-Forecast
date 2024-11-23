@@ -111,10 +111,12 @@ df_combined_stop <- df_combined_stop %>% select(-trip_stop_time)
 # Group by from(to)_station_name and the new interval, then count the occurrences
 result_start <- df_combined_start %>%
   group_by(from_station_name, interval) %>%
-  summarise(count = n())
+  summarise(count = n())%>%
+  ungroup()
 result_stop <- df_combined_stop %>%
   group_by(to_station_name, interval) %>%
-  summarise(count = n())
+  summarise(count = n())%>%
+  ungroup()
 
 # Make sure date are in the right format
 result_start$interval <- format(result_start$interval, format="%Y-%m-%d %H:%M:%S")

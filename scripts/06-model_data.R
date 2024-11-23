@@ -20,82 +20,57 @@ lapply(packages, library, character.only = TRUE)
 
 #### Read data ####
 df <- read_parquet(here::here("data/02-analysis_data/start.parquet"))
-# 将 time 列转换为日期时间格式
 df <- df %>%
   mutate(time = as.POSIXct(time, format = "%Y-%m-%d %H:%M:%S"))
+ut_stations <- c("Madison Ave / Bloor St W", "Bloor St W / Huron St", "St. George St / Bloor St W", 
+                 "Sussex Ave / St George St", "Spadina Ave / Sussex Ave", "Spadina Ave / Harbord St - SMART",
+                 "St. George St / Hoskin Ave", "Spadina Ave / Willcocks St", "St. George St / Willcocks St",
+                 "Willcocks St / St. George St", "Queen's Park / Bloor St W", "Queen's Park Cres W / Hoskin Ave",
+                 "Wellesley St W / Queen's Park Cres", "Queen's Park Cres E / Grosvenor St - SMART", 
+                 "Bay St / Bloor St W (East Side)", "Bay St / Bloor St W (West Side)", "Bay St / Charles St W - SMART",
+                 "St. Joseph St / Bay St - SMART", "Bay St / St. Joseph St", "Bay St / Wellesley St W", 
+                 "Ursula Franklin St / Huron St - SMART", "Ursula Franklin St / St. George St - SMART", "Galbraith Rd / King's College Rd",
+                 "College St / Huron St", "College St / Henry St ", "Queens Park Cres / College St ", "University Ave / College St (East)")
 
-
-
-SpadinaHarbord <- subset(df, station_name == "Queen's Park Cres E / Grosvenor St - SMART")
-SpadinaHarbord <- SpadinaHarbord %>% select(-station_name)
-SpadinaHarbord$time <- as.POSIXct(SpadinaHarbord$time, format = "%Y-%m-%d %H:%M:%S")
-train_index <- sample(1:nrow(SpadinaHarbord), 0.3 * nrow(SpadinaHarbord))
-
-train <- SpadinaHarbord[train_index, ]
-test <- SpadinaHarbord[-train_index, ]
-# Convert 'time' column to date-time format
-
-
-# Split time into multiple features
-train <- train %>%
-  mutate(
-    hour = hour(time),
-    day = day(time),
-    month = month(time),
-    year = year(time)
+#### Loop through each station and create models ####
+for (station in ut_stations) {
+  station_data <- subset(df, station_name == station)
+  station_data <- station_data %>% select(-station_name)
+  station_data$time <- as.POSIXct(station_data$time, format = "%Y-%m-%d %H:%M:%S")
+  
+  # Remove outliers
+  Q1 <- quantile(station_data$count, 0.25)
+  Q3 <- quantile(station_data$count, 0.75)
+  IQR <- Q3 - Q1
+  lower_bound <- Q1 - 1.5 * IQR
+  upper_bound <- Q3 + 1.5 * IQR
+  station_data <- subset(station_data, count >= lower_bound & count <= upper_bound)
+  train <- station_data %>%
+    mutate(
+      hour = hour(time),
+      day = day(time),
+      month = month(time),
+      year = year(time)
+    )
+  
+  # Fit Bayesian regression model
+  # Remove 'year' if it is a constant
+  if (length(unique(train$year)) == 1) {
+    model_formula <- count ~ hour + day + month
+  } else {
+    model_formula <- count ~ hour + day + month + year
+  }
+  
+  # Fit Bayesian regression model
+  model <- stan_glm(
+    model_formula,
+    data = train,
+    family = poisson(link = "log"),
+    prior = normal(0, 2),
+    prior_intercept = normal(0, 5),
+    chains = 4, iter = 2000
   )
-
-# Fit Bayesian regression model
-model <- stan_glm(
-  count ~ hour + day + month + year,
-  data = train,
-  family = poisson(link = "log"),  # Assuming count is count data, use Poisson distribution
-  prior = normal(0, 2),
-  prior_intercept = normal(0, 5),
-  chains = 4, iter = 2000
-)
-
-# Summarize model
-print(summary(model))
-
-# Make prediction
-test <- test %>%
-  mutate(
-    hour = hour(time),
-    day = day(time),
-    month = month(time),
-    year = year(time)
-  )
-predictions <- predict(model, newdata = drop_na(test))
-
-data_compa <- data.frame(
-  actual = test$count,
-  predicted = predictions
-)
-
-ggplot(data_compa, aes(x = actual, y = exp(predicted)))+
-  geom_point(color = "blue") +
-  geom_abline(intercept = 0, slope = 1, color = "red", linetype = "dashed") +
-  labs(
-    title = "真实值 vs 预测值",
-    x = "True",
-    y = "Predi") 
-
-
-
-
-
-
-
-
-
-
-
-
-#### Save model ####
-#saveRDS(
-#  first_model,
-#  file = "models/first_model.rds"
-#)
-
-
+  
+  # Save model
+  saveRDS(model, file = paste0("models/", gsub("[ /]", "_", station), ".rds"))
+}
