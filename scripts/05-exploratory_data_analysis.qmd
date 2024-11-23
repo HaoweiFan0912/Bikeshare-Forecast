@@ -76,32 +76,52 @@ ggplot(data = total_counts, aes(x = time_interval, y = count, fill = time_interv
   theme(legend.position = "none") 
 ```
 ```{r, fig.width=10}
-
 options(scipen = 999)
 
 
-average_counts_start <- start %>%
-  group_by(station_name) %>%
-  summarize(average_count = mean(count, na.rm = TRUE))
+# Create a new column for the time interval (every 1day)
+start_1day <- start %>%
+  mutate(date = as.Date(time))
+stop_1day <- stop %>%
+  mutate(date = as.Date(time))
+start_1day <- start_1day %>% select(-time)
+stop_1day <- stop_1day %>% select(-time)
 
-average_counts_stop <- stop %>%
+# Group by from(to)_station_name and the new interval, then count the occurrences
+start_1day1 <- start_1day %>%
+  group_by(station_name, date) %>%
+  summarise(total_count = sum(count), .groups = "drop") %>%
+  ungroup()
+stop_1day1 <- stop_1day %>%
+  group_by(station_name, date) %>%
+  summarise(total_count = sum(count), .groups = "drop") %>%
+  ungroup()
+
+
+average_counts_start <- start_1day1 %>%
   group_by(station_name) %>%
-  summarize(average_count = mean(count, na.rm = TRUE))
+  summarize(average_count = mean(total_count, na.rm = TRUE))
+
+average_counts_stop <- stop_1day1 %>%
+  group_by(station_name) %>%
+  summarize(average_count = mean(total_count, na.rm = TRUE))
 
 merged_data <- merge(average_counts_start, average_counts_stop, by.x = "station_name", by.y = "station_name", all = TRUE)
 
 
 merged_data <- merged_data %>%
-  mutate(count_difference = floor(average_count.y - average_count.x))
+  mutate(count_difference = ifelse((average_count.y - average_count.x) >= 0, 
+                                   ceiling(average_count.y - average_count.x), 
+                                   floor(average_count.y - average_count.x)))
 
 
 ggplot(merged_data, aes(x = station_name, y = count_difference)) +
   geom_bar(stat = "identity", fill = "steelblue") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  labs(title = "Four-hour average of bicycle parking and departure volumes for each station",
+  labs(title = "Difference of daily average of bicycle parking and departure volumes for each station",
        x = "Station Name",
        y = "Parking volume minus departure volume")+
-  ylim(-12, 3)+
+  ylim(-4, 3)+
   coord_flip()
 ```
 

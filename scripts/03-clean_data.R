@@ -92,6 +92,7 @@ ut_stations <- c("Madison Ave / Bloor St W", "Bloor St W / Huron St", "St. Georg
                  "Ursula Franklin St / Huron St - SMART", "Ursula Franklin St / St. George St - SMART", "Galbraith Rd / King's College Rd",
                  "College St / Huron St", "College St / Henry St ", "Queens Park Cres / College St ", "University Ave / College St (East)")
 df_combined <- df_combined[df_combined$from_station_name %in% ut_stations, ]
+df_combined <- df_combined[df_combined$to_station_name %in% ut_stations, ]
 
 # Process from-data and to-data separately.
 df_combined_start <- df_combined %>% select(trip_start_time, from_station_name)
@@ -119,32 +120,43 @@ result_stop <- df_combined_stop %>%
 result_start$interval <- format(result_start$interval, format="%Y-%m-%d %H:%M:%S")
 result_stop$interval <- format(result_stop$interval, format="%Y-%m-%d %H:%M:%S")
 
-# Supplement samples with a count of zero
-all_stations <- unique(result_start$from_station_name)
-all_intervals <- seq(from = as.POSIXct("2017-01-01 00:00:00"), 
-                     to = as.POSIXct("2024-09-30 24:00:00"), 
-                     by = "4 hours")
-all_intervals <- all_intervals - ifelse(as.numeric(format(all_intervals, "%H")) %% 2 == 1, 3600, 0)
-all_combinations_start <- expand.grid(from_station_name = all_stations, interval = all_intervals)
-all_combinations_start$interval <- format(all_combinations_start$interval, format="%Y-%m-%d %H:%M:%S")
-all_combinations_stop <- expand.grid(to_station_name = all_stations, interval = all_intervals)
-all_combinations_stop$interval <- format(all_combinations_stop$interval, format="%Y-%m-%d %H:%M:%S")
-full_data_start <- all_combinations_start %>%
-  left_join(result_start, by = c("from_station_name", "interval")) %>%
-  mutate(count = ifelse(is.na(count), 0, count))
-full_data_stop <- all_combinations_stop %>%
-  left_join(result_stop, by = c("to_station_name", "interval")) %>%
-  mutate(count = ifelse(is.na(count), 0, count))
+# # Supplement samples with a count of zero
+# all_stations <- unique(result_start$from_station_name)
+# all_intervals <- seq(from = as.POSIXct("2017-01-01 00:00:00"),
+#                      to = as.POSIXct("2024-09-30 24:00:00"),
+#                      by = "4 hours")
+# all_intervals <- all_intervals - ifelse(as.numeric(format(all_intervals, "%H")) %% 2 == 1, 3600, 0)
+# all_combinations_start <- expand.grid(from_station_name = all_stations, interval = all_intervals)
+# all_combinations_start$interval <- format(all_combinations_start$interval, format="%Y-%m-%d %H:%M:%S")
+# all_combinations_stop <- expand.grid(to_station_name = all_stations, interval = all_intervals)
+# all_combinations_stop$interval <- format(all_combinations_stop$interval, format="%Y-%m-%d %H:%M:%S")
+# full_data_start <- all_combinations_start %>%
+#   left_join(result_start, by = c("from_station_name", "interval")) %>%
+#   mutate(count = ifelse(is.na(count), 0, count))
+# full_data_stop <- all_combinations_stop %>%
+#   left_join(result_stop, by = c("to_station_name", "interval")) %>%
+#   mutate(count = ifelse(is.na(count), 0, count))
+
+# # Clean column names
+# colnames(full_data_start)[colnames(full_data_start) == "interval"] <- "time"
+# colnames(full_data_stop)[colnames(full_data_stop) == "interval"] <- "time"
+# colnames(full_data_start)[colnames(full_data_start) == "from_station_name"] <- "station_name"
+# colnames(full_data_stop)[colnames(full_data_stop) == "to_station_name"] <- "station_name"
+# full_data_start <- full_data_start %>% janitor::clean_names()
+# full_data_stop <- full_data_stop %>% janitor::clean_names()
+
 
 # Clean column names
-colnames(full_data_start)[colnames(full_data_start) == "interval"] <- "time"
-colnames(full_data_stop)[colnames(full_data_stop) == "interval"] <- "time"
-colnames(full_data_start)[colnames(full_data_start) == "from_station_name"] <- "station_name"
-colnames(full_data_stop)[colnames(full_data_stop) == "to_station_name"] <- "station_name"
-full_data_start <- full_data_start %>% janitor::clean_names()
-full_data_stop <- full_data_stop %>% janitor::clean_names()
+colnames(result_start)[colnames(result_start) == "interval"] <- "time"
+colnames(result_stop)[colnames(result_stop) == "interval"] <- "time"
+colnames(result_start)[colnames(result_start) == "from_station_name"] <- "station_name"
+colnames(result_stop)[colnames(result_stop) == "to_station_name"] <- "station_name"
+result_start <- result_start %>% janitor::clean_names()
+result_stop <- result_stop %>% janitor::clean_names()
+
+
 
 #### Save data ####
-write_parquet(full_data_start, "data/02-analysis_data/start.parquet")
-write_parquet(full_data_stop, "data/02-analysis_data/stop.parquet")
+write_parquet(result_start, "data/02-analysis_data/start.parquet")
+write_parquet(result_stop, "data/02-analysis_data/stop.parquet")
 
