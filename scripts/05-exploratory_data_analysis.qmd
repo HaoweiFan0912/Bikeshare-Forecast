@@ -32,12 +32,9 @@ stop <- read_parquet(here::here("data/02-analysis_data/stop.parquet"))
 #| message: false
 start_asdate <- start 
 start_asdate$time <- as.Date(start_asdate$time)
-
-
 daily_counts <- start_asdate %>%
   group_by(time) %>%
   summarise(total_count = sum(count))
-
 ggplot(data = daily_counts, aes(x = time, y = total_count)) +
   geom_point() +
   labs(title = "Daily usage from January 2017 to September 2024", x = "Time", y = "Count") +
@@ -65,15 +62,18 @@ start_astime <- start_astime %>%
 
 total_counts <- start_astime %>%
   group_by(time_interval) %>%
-  summarise(count = sum(count, na.rm = TRUE))
+  summarise(count = sum(count, na.rm = TRUE)) %>%
+  mutate(percentage = count / sum(count) * 100)
 
-
+# 绘制条形图并添加百分比标签
 ggplot(data = total_counts, aes(x = time_interval, y = count, fill = time_interval)) +
   geom_bar(stat = "identity") +
+  geom_text(aes(label = paste0(round(percentage, 1), "%")), 
+            vjust = -0.5, size = 3) + # 添加百分比标签
   labs(title = "Total usage during different time periods from January 2017 to September 2024", 
        x = "Time interval", y = "Count") +
   theme_minimal() +
-  theme(legend.position = "none") 
+  theme(legend.position = "none")
 ```
 ```{r, fig.width=10}
 options(scipen = 999)
@@ -123,5 +123,28 @@ ggplot(merged_data, aes(x = station_name, y = count_difference)) +
        y = "Parking volume minus departure volume")+
   ylim(-4, 3)+
   coord_flip()
+```
+```{r}
+df_month <- start
+df_month$time <- as.POSIXct(df_month$time, format = "%Y-%m-%d %H:%M:%S")
+df_month <- df_month %>% select(-station_name)
+# 提取年月信息并添加新列
+df_month$year_month <- format(df_month$time, "%m")
+
+# 按照年月和站点分组并汇总 count
+monthly_count <- df_month %>%
+  group_by(year_month) %>%
+  summarise(total_count = sum(count)/30)
+
+# 绘制每月所有站点的总和柱状图
+ggplot(monthly_count, aes(x = year_month, y = total_count)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "每个月所有站台的 Count 总和",
+       x = "年月",
+       y = "总和 Count",
+       fill = "站台名称") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
 ```
 

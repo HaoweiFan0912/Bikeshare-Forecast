@@ -6,7 +6,7 @@ author:
 thanks: "Code and data are available at: https://github.com/HaoweiFan0912/Bikeshare-Forecast.git"
 date: today
 date-format: long
-abstract: "First sentence. Second sentence. Third sentence. Fourth sentence."
+abstract: "Students and staff at the University of Toronto's St. George campus often face difficulties finding a bike-sharing parking spot when arriving at campus, and finding a bike when leaving, which highlights the need for effective prediction of future bike-sharing demand to support campus commuting infrastructure. This study uses Bayesian Poisson regression to predict the usage of bike-sharing stations at 27 locations on campus for specific years, months, and  four-hour intervals of the day. The results show that bike-sharing usage on campus has been increasing annually, with significant seasonal variations and peak usage between 8 am and 8 pm."
 format: pdf
 number-sections: true
 bibliography: references.bib
@@ -28,35 +28,23 @@ install.packages(missing_packages)
 lapply(packages, library, character.only = TRUE)
 
 #### Read data ####
-
 start <- read_parquet(here::here("data/02-analysis_data/start.parquet"))
 stop <- read_parquet(here::here("data/02-analysis_data/stop.parquet"))
 ```
 
-```{r}
-
-```
-
-
-
-
-
 # Introduction
+Bike-sharing services have undoubtedly improved commuting efficiency, especially for short trips within a campus. For example, a study on bike-sharing in Xiamen, China, highlighted how data-driven analyses can inform policymakers about system performance, thereby guiding investments and policy decisions to enhance urban mobility[https://arxiv.org/abs/2401.03987?utm_source=chatgpt.com]. However, in the Toronto region, despite a study by the University of Toronto's School of Cities showing that ridership increased from about 665,000 trips in 2015 to over 4.5 million in 2022[https://schoolofcities.github.io/bike-share-toronto/growth], there has been little research focused on small-scale areas, such as universities, within Toronto. Furthermore, a study from Hangzhou, China, confirmed the significant differences in traveling characteristics between cities and university campuses[https://file.techscience.com/uploads/attached/file/20200916/20200916072445_75552.pdf?utm_source=chatgpt.com]. Therefore, this paper takes the University of Toronto as a case study to analyze bike-sharing usage within the campus.
 
-Overview paragraph
+本研究的核心在于，从自2017年月1日到2024年9月30日中的所有共享单车使用数据中抽取多伦多大学校园内27个站台的样本，并按照4小时的区间，计算每个站台在各个区间内的共享单车使用总量。并且通过贝叶斯柏松回归模型根据站台，年份，月份，日期，以及这一天的具体4小时区间，来预测该站台在此区间内的使用数量。
 
-Estimand paragraph
+本研究发现，尽管多大校园内所有站点的使用量每年都呈现极速上涨，但都存在巨大的季节性差异。冬天的使用量无论年份，站点统统呈现着接近0的使用量。另外，在每年的1-9月，使用量呈上升趋势，之后的几个月逐渐下降。一天中不同时间段的使用量也存在明显差异其中8am到8pm的使用量平均占了一天中的79.8%，相比之下0am-8am的使用量只有6.8%。另外值得注意的是27个站台中单车的开出量于停放量基本持平，但存在4个站台他们的进出量纯在较大差异。
 
-Results paragraph
+这些见解相比于笼统的大多伦多地区共享单车使用数量的统计，更能针对多伦多大学校区内的交通建设以及政策调整，以及如何调度，投放或储存共享单车提供更详细的建议。
 
-Why it matters paragraph
+结构：TBD
 
-Telegraphing paragraph: The remainder of this paper is structured as follows. @sec-data....
-
-
-
-
-
+## Estimand
+本研究旨在估计特定4小时区间内多伦多大学校园内某个共享单车站台的使用量。通过将时间转换为年，月，日，这一天特定的4小时区间，来考虑到某个站台使用量的总体趋势，季节以及hourly variation。核心目标是探索多伦多大学校园内27个共享单车站台使用量随时间的变化，从而给政策制定者建议以调度自行车，来提高校园内的通勤效率。
 
 # Data {#sec-data}
 
