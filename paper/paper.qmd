@@ -29,6 +29,7 @@ lapply(packages, library, character.only = TRUE)
 
 #### Read data ####
 start <- read_parquet(here::here("data/02-analysis_data/start.parquet"))
+write_csv(start, file = here::here("data/lalalala.csv"))
 stop <- read_parquet(here::here("data/02-analysis_data/stop.parquet"))
 ```
 

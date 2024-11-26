@@ -148,3 +148,99 @@ ggplot(monthly_count, aes(x = year_month, y = total_count)) +
 
 ```
 
+
+```{r}
+md <- readRDS(here::here("models/Spadina_Ave___Harbord_St_-_SMART.rds"))
+new_data <- start %>% filter(station_name == "Spadina Ave / Harbord St - SMART")
+train <- new_data %>%
+    mutate(
+      hour = hour(time),
+      day = day(time),
+      month = month(time),
+      year = year(time)
+    )
+new_data$Predicted <- predict(md, newdata = train)
+new_data <- new_data[new_data$count <= 8, ]
+ggplot(new_data, aes(x = count, y = exp(Predicted))) +
+  geom_point(color = "blue", alpha = 0.7) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") + 
+  labs(
+    title = "Scatter Plot of True vs Predicted Values",
+    x = "True Values",
+    y = "Predicted Values"
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+md <- readRDS(here::here("models/Madison_Ave___Bloor_St_W.rds"))
+new_data <- start %>% filter(station_name == "Madison Ave / Bloor St W")
+train <- new_data %>%
+    mutate(
+      hour = hour(time),
+      day = day(time),
+      month = month(time),
+      year = year(time)
+    )
+new_data$Predicted <- predict(md, newdata = train)
+new_data$Predicted
+new_data <- new_data[new_data$count <= 8, ]
+ggplot(new_data, aes(x = count, y = exp(exp(Predicted)))) +
+  geom_point(color = "blue", alpha = 0.7) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") + 
+  labs(
+    title = "Scatter Plot of True vs b Predicted Values",
+    x = "True Values",
+    y = "Predicted Values"
+  ) +
+  theme_minimal()
+
+
+```
+```{r}
+md <- readRDS(here::here("models/Galbraith_Rd___King's_College_Rd.rds"))
+new_data <- start %>% filter(station_name == "Galbraith Rd / King's College Rd")
+train <- new_data %>%
+    mutate(
+      hour = hour(time),
+      day = day(time),
+      month = month(time),
+      year = year(time)
+    )
+new_data$Predicted <- predict(md, newdata = train)
+new_data <- new_data[new_data$count <= 8, ]
+ggplot(new_data, aes(x = count, y = exp(Predicted))) +
+  geom_point(color = "blue", alpha = 0.7) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") + 
+  labs(
+    title = "Scatter Plot of True vs Predicted Values",
+    x = "True Values",
+    y = "Predicted Values"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+md <- readRDS(here::here("models/Ursula_Franklin_St___Huron_St_-_SMART.rds"))
+new_data <- start %>% filter(station_name == "Ursula Franklin St / Huron St - SMART")
+train <- new_data %>%
+    mutate(
+      hour = hour(time),
+      day = day(time),
+      month = month(time),
+      year = year(time)
+    )
+new_data$Predicted <- predict(md, newdata = train)
+new_data <- new_data[new_data$count <= 8, ]
+ggplot(new_data, aes(x = count, y = exp(Predicted))) +
+  geom_point(color = "blue", alpha = 0.7) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") + 
+  labs(
+    title = "Scatter Plot of True vs Predicted Values",
+    x = "True Values",
+    y = "Predicted Values"
+  ) +
+  theme_minimal()
+```
+
