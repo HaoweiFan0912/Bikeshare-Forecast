@@ -243,4 +243,63 @@ ggplot(new_data, aes(x = count, y = exp(Predicted))) +
   ) +
   theme_minimal()
 ```
+```{r}
+ut_stations <- c("Madison Ave / Bloor St W", "Bloor St W / Huron St", "St. George St / Bloor St W", 
+                 "Sussex Ave / St George St", "Spadina Ave / Sussex Ave", "Spadina Ave / Harbord St - SMART",
+                 "St. George St / Hoskin Ave", "Spadina Ave / Willcocks St", "St. George St / Willcocks St",
+                 "Willcocks St / St. George St", "Queen's Park / Bloor St W", "Queen's Park Cres W / Hoskin Ave",
+                 "Wellesley St W / Queen's Park Cres", "Queen's Park Cres E / Grosvenor St - SMART", 
+                 "Bay St / Bloor St W (East Side)", "Bay St / Bloor St W (West Side)", "Bay St / Charles St W - SMART",
+                 "St. Joseph St / Bay St - SMART", "Bay St / St. Joseph St", "Bay St / Wellesley St W", 
+                 "Ursula Franklin St / Huron St - SMART", "Ursula Franklin St / St. George St - SMART", "Galbraith Rd / King's College Rd",
+                 "College St / Huron St", "College St / Henry St ", "Queens Park Cres / College St ", "University Ave / College St (East)")
+
+result <- data_frame(station_name = ut_stations, time = as.POSIXct("2025-09-26 04:00:00", format = "%Y-%m-%d %H:%M:%S"))
+
+for (station in ut_stations) {
+  station_data <- subset(start, station_name == station)
+  path <- paste(paste0("models/", gsub("[ /]", "_", station), ".rds"))
+  md <- readRDS(here::here(path))
+  target <- data_frame(
+    hour = 4,
+    day = 26,
+    month = 9,
+    year = 2026
+  )
+  target$predicted <- ceiling(exp(predict(md, newdata = target)))
+  target$station_name <- station
+  target <- target %>% select(-hour,-day,-month,-year)
+  result[result$station_name == station, "prediction"] <- target$predicted
+}
+
+data2024 <- start
+for (station in ut_stations) {
+  date <- "2024-09-26 04:00:00"
+  exists <- nrow(data2024[data2024$station_name == station & data2024$time == date, ]) > 0
+  
+  if (!exists) {
+    new_row <- data.frame(
+      station_name = station,
+      time = date,
+      count = 0
+    )
+    data2024 <- rbind(data2024, new_row)
+  }
+}
+
+data2024 <- data2024[data2024$time == "2024-09-26 04:00:00", ]
+
+names(result)[names(result) == "time"] <- "target_time"
+
+
+data_fi <- merge(data2024, result, by = "station_name")
+
+data_fi$growth <- data_fi$prediction - data_fi$count
+
+data_fi
+
+n <- sum(data_fi$growth)/27
+n
+```
+
 

@@ -6,7 +6,7 @@ author:
 thanks: "Code and data are available at: https://github.com/HaoweiFan0912/Bikeshare-Forecast.git"
 date: today
 date-format: long
-abstract: "Students and staff at the University of Toronto's St. George campus often face difficulties finding a bike-sharing parking spot when arriving at campus, and finding a bike when leaving, which highlights the need for effective prediction of future bike-sharing demand to support campus commuting infrastructure. This study uses Bayesian Poisson regression to predict the usage of bike-sharing stations at 27 locations on campus for specific years, months, and  four-hour intervals of the day. The results show that bike-sharing usage on campus has been increasing annually, with significant seasonal variations and peak usage between 8 am and 8 pm."
+abstract: "Students and staff at the University of Toronto's St. George campus often face difficulties finding a bike-sharing parking spot when arriving at campus, and finding a bike when leaving, which highlights the need for effective prediction of future bike-sharing demand to support campus commuting infrastructure. This study uses Bayesian Poisson regression to predict the usage of bike-sharing stations at 27 locations on campus for specific years, months, and  four-hour intervals of the day. The results indicate that, on September 26, 2025, from 4:00 to 8:00 AM, usage at 8 stations will increase by 3, 14 stations by 2, 3 stations by 1, 1 station remains unchanged, and 1 station will decrease by 1 compared to the same period in 2024."
 format: pdf
 number-sections: true
 bibliography: references.bib
@@ -29,7 +29,6 @@ lapply(packages, library, character.only = TRUE)
 
 #### Read data ####
 start <- read_parquet(here::here("data/02-analysis_data/start.parquet"))
-write_csv(start, file = here::here("data/lalalala.csv"))
 stop <- read_parquet(here::here("data/02-analysis_data/stop.parquet"))
 ```
 
@@ -38,7 +37,8 @@ Bike-sharing services have undoubtedly improved commuting efficiency, especially
 
 The core of this study is to extract a sample of 27 bike-sharing stations within the University of Toronto campus from all bike-sharing usage data between January 1, 2017, and September 30, 2024. The total usage of bike-sharing at each station is calculated for each 4-hour interval. A Bayesian Poisson regression model is then employed to predict the usage based on the station, year, month, date, and the specific 4-hour interval of the day.
 
-This study found that although the usage at all stations within the University of Toronto campus has increased rapidly each year, there are significant seasonal differences. During winter, usage at all stations, regardless of the year, remains close to zero. Additionally, from January to September each year, the usage shows an upward trend, which then gradually declines over the following months. There are also significant differences in usage across different times of the day. The period from 8 am to 8 pm accounts for an average of 79.8% of daily usage, while the period from midnight to 8 am accounts for only 6.8%. Notably, the number of bikes checked out and parked at the 27 stations is generally balanced; however, there are four stations where there is a substantial discrepancy between the number of check-outs and returns.
+This study found that although the usage at all stations within the University of Toronto campus has increased rapidly each year, there are significant seasonal differences. During winter, usage at all stations, regardless of the year, remains close to zero. Additionally, from January to September each year, the usage shows an upward trend, which then gradually declines over the following months. There are also significant differences in usage across different times of the day. The period from 8 am to 8 pm accounts for an average of 79.8% of daily usage, while the period from midnight to 8 am accounts for only 6.8%. It is noteworthy that this project forecasts an average increase of 2 uses across 27 stations between 4:00 AM and 8:00 AM on September 26, 2025, compared to the same time period in 2024. Specifically, usage at 8 stations is expected to increase by 3, 14 stations by 2, and 3 stations by 1, while 1 station will remain unchanged and another will decrease by 1.
+
 
 Compared to the general statistics on bike-sharing usage in the Greater Toronto Area, these findings offer more detailed recommendations specifically for transportation planning and policy adjustments within the University of Toronto campus. They also provide guidance on how to better allocate, deploy, or store shared bikes.
 
@@ -83,7 +83,7 @@ This study focuses on the following variables:
 - `time`: An independent variable representing the time interval. For example, "2024-09-29 12:00:00" represents the time interval from 12 pm to 4 pm on September 29, 2024, in a 24-hour format. The earliest `time` is "2017-01-01 00:00:00," and the latest is "2024-09-30 24:00:00."
 - `station_name`: An independent variable representing the unique name of one of the 27 stations within the University of Toronto's St. George campus.
 
-
+@fig-daily_usage shows the daily usage totals of 27 shared bicycle stations from January 1, 2017, to September 30, 2024. It can be observed that the overall usage exhibits a significant upward trend, particularly after 2021, where usage fluctuations increased noticeably. In 2024, several peaks in daily usage reached historical highs, indicating a substantial growth in user demand. Additionally, the data displays some seasonal variations, with noticeable declines during the winter months and increases during spring and summer.
 ```{r}
 #| label: fig-daily_usage
 #| fig-cap: Daily usage from January 2017 to September 2024
@@ -101,10 +101,99 @@ ggplot(data = daily_counts, aes(x = time, y = total_count)) +
   geom_smooth(method = "lm")  
 ```
 
+hows the total usage and percentage of shared bicycles during different time intervals in a day from January 1, 2017, to September 30, 2024. It can be observed that the peak usage occurs between 12:00 to 16:00 (28.5%) and 16:00 to 20:00 (31.4%). The usage between 08:00 to 12:00 accounts for 19.9%, while the usage from 20:00 to 00:00 accounts for 13.4%. The time intervals with the lowest usage are 00:00 to 04:00 (3.6%) and 04:00 to 08:00 (3.2%).
+
+```{r}
+#| label: fig-timely_usage
+#| fig-cap: Total usage during different time periods from January 2017 to September 2024
+#| echo: false
+#| message: false
+options(scipen = 999)
+
+start_astime <- start 
+start_astime$time <- as.POSIXct(start_astime$time)
 
 
+start_astime <- start_astime %>%
+  mutate(time_interval = case_when(
+    hour(time) >= 0 & hour(time) < 4 ~ "00:00 - 04:00",
+    hour(time) >= 4 & hour(time) < 8 ~ "04:00 - 08:00",
+    hour(time) >= 8 & hour(time) < 12 ~ "08:00 - 12:00",
+    hour(time) >= 12 & hour(time) < 16 ~ "12:00 - 16:00",
+    hour(time) >= 16 & hour(time) < 20 ~ "16:00 - 20:00",
+    hour(time) >= 20 & hour(time) < 24 ~ "20:00 - 00:00"
+  ))
 
 
+total_counts <- start_astime %>%
+  group_by(time_interval) %>%
+  summarise(count = sum(count, na.rm = TRUE)) %>%
+  mutate(percentage = count / sum(count) * 100)
+
+ggplot(data = total_counts, aes(x = time_interval, y = count, fill = time_interval)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = paste0(round(percentage, 1), "%")), 
+            vjust = -0.5, size = 3) + 
+  labs(x = "Time interval", y = "Count") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+@fig-difference_usage shows the result of the average daily parking volume minus the departure volume at each station. It can be observed that most stations have balanced parking and departure volumes, but some stations show significant supply-demand differences. Specifically, stations such as Bay St / Charles St W – SMART and Bay St / Wellesley St W have noticeably higher departure volumes than parking, while College St / Huron St and College St / Henry St have higher parking volumes than departure, indicating an imbalance in supply and demand at these locations.
+
+```{r, fig.width=8, fig.height=5}
+#| label: fig-difference_usage
+#| fig-cap: Difference of daily average of bicycle parking and departure volumes for each station
+#| echo: false
+#| message: false
+options(scipen = 999)
+
+
+# Create a new column for the time interval (every 1day)
+start_1day <- start %>%
+  mutate(date = as.Date(time))
+stop_1day <- stop %>%
+  mutate(date = as.Date(time))
+start_1day <- start_1day %>% select(-time)
+stop_1day <- stop_1day %>% select(-time)
+
+# Group by from(to)_station_name and the new interval, then count the occurrences
+start_1day1 <- start_1day %>%
+  group_by(station_name, date) %>%
+  summarise(total_count = sum(count), .groups = "drop") %>%
+  ungroup()
+stop_1day1 <- stop_1day %>%
+  group_by(station_name, date) %>%
+  summarise(total_count = sum(count), .groups = "drop") %>%
+  ungroup()
+
+
+average_counts_start <- start_1day1 %>%
+  group_by(station_name) %>%
+  summarize(average_count = mean(total_count, na.rm = TRUE))
+
+average_counts_stop <- stop_1day1 %>%
+  group_by(station_name) %>%
+  summarize(average_count = mean(total_count, na.rm = TRUE))
+
+merged_data <- merge(average_counts_start, average_counts_stop, by.x = "station_name", by.y = "station_name", all = TRUE)
+
+
+merged_data <- merged_data %>%
+  mutate(count_difference = ifelse((average_count.y - average_count.x) >= 0, 
+                                   ceiling(average_count.y - average_count.x), 
+                                   floor(average_count.y - average_count.x)))
+
+
+ggplot(merged_data, aes(x = station_name, y = count_difference)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(
+       x = "Station Name",
+       y = "Parking volume minus departure volume")+
+  ylim(-4, 3)+
+  coord_flip()
+```
 
 
 
