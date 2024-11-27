@@ -20,7 +20,7 @@ bibliography: references.bib
 #### Workspace setup ####
 set.seed(912)
 # List of necessary packages
-packages <- c("tidyverse", "dplyr", "arrow", "sf", "ggplot2", "ggspatial", "RColorBrewer", "knitr")
+packages <- c("tidyverse", "dplyr", "arrow", "sf", "ggplot2", "ggspatial", "RColorBrewer", "knitr", "bayesplot", "kableExtra")
 # Install missing packages
 missing_packages <- packages[!(packages %in% installed.packages()[, "Package"])]
 install.packages(missing_packages)
@@ -84,11 +84,12 @@ This study focuses on the following variables:
 - `station_name`: An independent variable representing the unique name of one of the 27 stations within the University of Toronto's St. George campus.
 
 @fig-daily_usage shows the daily usage totals of 27 shared bicycle stations from January 1, 2017, to September 30, 2024. It can be observed that the overall usage exhibits a significant upward trend, particularly after 2021, where usage fluctuations increased noticeably. In 2024, several peaks in daily usage reached historical highs, indicating a substantial growth in user demand. Additionally, the data displays some seasonal variations, with noticeable declines during the winter months and increases during spring and summer.
-```{r}
+```{r, fig.pos="H"}
 #| label: fig-daily_usage
 #| fig-cap: Daily usage from January 2017 to September 2024
 #| echo: false
 #| message: false
+#| warning: false
 start_asdate <- start 
 start_asdate$time <- as.Date(start_asdate$time)
 daily_counts <- start_asdate %>%
@@ -103,11 +104,12 @@ ggplot(data = daily_counts, aes(x = time, y = total_count)) +
 
 hows the total usage and percentage of shared bicycles during different time intervals in a day from January 1, 2017, to September 30, 2024. It can be observed that the peak usage occurs between 12:00 to 16:00 (28.5%) and 16:00 to 20:00 (31.4%). The usage between 08:00 to 12:00 accounts for 19.9%, while the usage from 20:00 to 00:00 accounts for 13.4%. The time intervals with the lowest usage are 00:00 to 04:00 (3.6%) and 04:00 to 08:00 (3.2%).
 
-```{r}
+```{r, fig.pos="H"}
 #| label: fig-timely_usage
 #| fig-cap: Total usage during different time periods from January 2017 to September 2024
 #| echo: false
 #| message: false
+#| warning: false
 options(scipen = 999)
 
 start_astime <- start 
@@ -141,11 +143,12 @@ ggplot(data = total_counts, aes(x = time_interval, y = count, fill = time_interv
 
 @fig-difference_usage shows the result of the average daily parking volume minus the departure volume at each station. It can be observed that most stations have balanced parking and departure volumes, but some stations show significant supply-demand differences. Specifically, stations such as Bay St / Charles St W – SMART and Bay St / Wellesley St W have noticeably higher departure volumes than parking, while College St / Huron St and College St / Henry St have higher parking volumes than departure, indicating an imbalance in supply and demand at these locations.
 
-```{r, fig.width=8, fig.height=5}
+```{r, fig.width=8, fig.height=5, fig.pos="H"}
 #| label: fig-difference_usage
 #| fig-cap: Difference of daily average of bicycle parking and departure volumes for each station
 #| echo: false
 #| message: false
+#| warning: false
 options(scipen = 999)
 
 
@@ -195,37 +198,97 @@ ggplot(merged_data, aes(x = station_name, y = count_difference)) +
   coord_flip()
 ```
 
+# Model
+The model used in this study is as follows:
+
+\begin{equation*}
+\begin{aligned}
+    \text{count} &\sim \text{Poisson}(\lambda) \\
+    \log(\lambda) &= \beta_0 + \beta_1 \times \text{hour} + \beta_2 \times \text{day} + \beta_3 \times \text{month} + \beta_4 \times \text{year} \\
+    \beta_0 &\sim \mathcal{N}(0, 5) \\
+    \beta_j &\sim \mathcal{N}(0, 2) \quad \text{for } j = 1, 2, 3, 4
+\end{aligned}
+\end{equation*}
+
+This study employs a Bayesian linear Poisson model to predict the variable `count`, which represents the expected number of bike-sharing usage events at a specific station on the St. George campus of the University of Toronto within a future 4-hour interval. The `count` is assumed to follow a $\text{Poisson}(\lambda)$ distribution, where $\log(\lambda)$ is the logarithmic transformation of the count. This transformation provides a simpler and more stable way to describe the relationship between the `count` and its influencing factors.
+
+The predictors used in this model are as follows:
+\begin{itemize}
+  \item year: The year of the time being predicted.
+  \item month: The month of the time being predicted.
+  \item day: The day of the month being predicted.
+  \item hour: The time interval within the day being predicted. For example, a value of 12 represents the 4-hour interval from the 12th hour to the 16th hour in a 24-hour day.
+\end{itemize}
+
+The intercept $\beta_0$ represents the baseline level of the response variable `count` when all predictors (`year`, `month`, `day`, and `hour`) are zero. A relatively broad prior distribution, $\mathcal{N}(0, 5)$, is assigned to $\beta_0$ due to the lack of strong prior knowledge about the baseline demand. This allows the model to flexibly learn the actual baseline demand from the data. Additionally, given the potential for significant variability in baseline usage levels at different times, the broad prior ensures that the model can account for this uncertainty effectively.
+
+For the coefficients $\beta_1, \beta_2, \beta_3, \beta_4$, which correspond to the predictors `hour`, `day`, `month`, and `year`, a narrower prior distribution, $\mathcal{N}(0, 2)$, is used. This reflects the assumption that the effects of these variables on `count` are likely to be moderate and within a reasonable range. The smaller standard deviation imposes stronger constraints on these effects, preventing them from causing unrealistic shifts in the predictions. At the same time, the prior remains flexible enough to allow the model to learn the actual effects of these time-related factors on demand patterns from the data.
+
+## Validation
+@fig-PPvsFV is the residual plot. It can be observed that the model performs well overall in the following aspects: First, most residuals are distributed around the zero line, indicating that the model has no significant systematic bias and can effectively capture the trend of `count`. Second, the majority of residuals have small absolute values, approximately within the range of $[-2, 2]$, suggesting that the model provides reliable predictions for most samples with minimal errors. Third, there is no significant nonlinear pattern between the residuals and fitted values, such as obvious curves or systematic relationships, demonstrating that the model structure captures the key influencing factors and fits the data reasonably well. Fourth, although there are a few points with larger residuals (e.g., Pearson residuals greater than 4), their number is small, and the overall predictions are not significantly affected by these outliers, reflecting the model's robustness. Fifth, if this is a relatively simple model (e.g., linear or generalized linear model), the current results indicate that the variable selection and model design are meaningful. 
+
+```{r, fig.pos="H"}
+#| label: fig-PPvsFV
+#| fig-cap: Pearson Residuals vs Fitted Values
+#| echo: false
+#| message: false
+#| warning: false
+options(scipen = 999)
+poisson_glm <- readRDS(here::here("models/Galbraith_Rd___King's_College_Rd.rds"))
+data <- read_parquet(here::here("data/02-analysis_data/start.parquet")) %>% filter(station_name == "Galbraith Rd / King's College Rd
+")%>%
+    mutate(
+      hour = hour(time),
+      day = day(time),
+      month = month(time),
+      year = year(time)
+    )
+
+# 1. Residual diagnostics
+# Extract residuals
+pearson_residuals <- residuals(poisson_glm, type = "pearson")
+deviance_residuals <- residuals(poisson_glm, type = "deviance")
+
+# Plot residuals vs fitted values
+ggplot(data, aes(x = fitted(poisson_glm), y = pearson_residuals)) +
+  geom_point() +
+  geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
+  labs(title = "Pearson Residuals vs Fitted Values", x = "Fitted Values", y = "Pearson Residuals")
+
+```
+@fig-PPplot is the posterior predictive check plot. It demonstrates that the model performs well in capturing the overall distribution of the observed data. Specifically, the primary density peak of the observed data ($y$) between 0 and 3 aligns closely with the predictive distributions ($y_{rep}$), indicating that the model successfully captures the main trends of the data. Additionally, the tails of the predictive distributions, particularly for values greater than 6, show a consistent pattern with the observed data. This suggests that the model is capable of reasonably approximating the low-frequency occurrences in the dataset, ensuring that the overall fit is robust across both the high-density and low-density regions. 
+```{r, fig.pos="H"}
+#| label: fig-PPplot
+#| fig-cap: Posterior Predictive Checks
+#| echo: false
+#| message: false
+#| warning: false
+# 5. Posterior Predictive Checks
+pp_check(poisson_glm, plotfun = "dens_overlay", nreps = 100) # Overlay of predictive densities
+```
+The model demonstrates several strengths based on the parameter estimates and confidence intervals shown in @tbl-crediinte. It successfully identifies `month` as a significant predictor, with its confidence interval excluding zero, indicating a strong and meaningful influence on the response variable. This highlights the model’s ability to capture the seasonal trends that are crucial for predicting bike-sharing demand. Additionally, the predictors (`hour`, `day`, `month`) are time-related and intuitive, making the model highly interpretable. The coefficients and confidence intervals are relatively small, reflecting stable estimates without extreme effects, which enhances the model’s robustness and generalizability. Furthermore, the insignificant effects of `hour` and `day` suggest that the model avoids overfitting by not overemphasizing less impactful predictors. The chosen priors are reasonable, allowing data to guide the posterior updates effectively, especially for identifying the critical role of `month`. Overall, the model strikes a good balance between stability, interpretability, and predictive power, making it a solid foundation for understanding and forecasting seasonal trends.
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+#| label: tbl-crediinte
+#| tbl-cap: "Credible intervals"
+posterior_draws <- as.matrix(poisson_glm)
+
+# Compute credible intervals
+credible_intervals <- apply(posterior_draws, 2, function(x) quantile(x, probs = c(0.025, 0.975)))
+
+# Convert to data frame for display
+credible_intervals_df <- t(credible_intervals)  # Transpose to match the desired layout
+
+# Display as a table
+kable(credible_intervals_df, format = "html", digits = 8, align = "c",
+      col.names = c("2.5%", "97.5%"))
+```
 
 
 
-
-<!-- # Model -->
-
-<!-- The goal of our modelling strategy is twofold. Firstly,... -->
-
-<!-- Here we briefly describe the Bayesian analysis model used to investigate... Background details and diagnostics are included in [Appendix -@sec-model-details]. -->
-
-<!-- ## Model set-up -->
-
-<!-- Define $y_i$ as the number of seconds that the plane remained aloft. Then $\beta_i$ is the wing width and $\gamma_i$ is the wing length, both measured in millimeters.   -->
-
-<!-- \begin{align}  -->
-<!-- y_i|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\ -->
-<!-- \mu_i &= \alpha + \beta_i + \gamma_i\\ -->
-<!-- \alpha &\sim \mbox{Normal}(0, 2.5) \\ -->
-<!-- \beta &\sim \mbox{Normal}(0, 2.5) \\ -->
-<!-- \gamma &\sim \mbox{Normal}(0, 2.5) \\ -->
-<!-- \sigma &\sim \mbox{Exponential}(1) -->
-<!-- \end{align} -->
-
-<!-- We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`. -->
-
-
-<!-- ### Model justification -->
-
-<!-- We expect a positive relationship between the size of the wings and time spent aloft. In particular... -->
-
-<!-- We can use maths by including latex between dollar signs, for instance $\theta$. -->
 
 
 <!-- # Results -->
