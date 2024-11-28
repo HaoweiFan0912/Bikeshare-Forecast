@@ -8,7 +8,10 @@ date: today
 date-format: long
 abstract: "Students and staff at the University of Toronto's St. George campus often face difficulties finding a bike-sharing parking spot when arriving at campus, and finding a bike when leaving, which highlights the need for effective prediction of future bike-sharing demand to support campus commuting infrastructure. This study uses Bayesian Poisson regression to predict the usage of bike-sharing stations at 27 locations on campus for specific years, months, and  four-hour intervals of the day. The results indicate that, on September 26, 2025, from 4:00 to 8:00 AM, usage at 8 stations will increase by 3, 14 stations by 2, 3 stations by 1, 1 station remains unchanged, and 1 station will decrease by 1 compared to the same period in 2024."
 format: pdf
+toc-depth: 2    
 number-sections: true
+toc: true           
+toc-title: "Table of Contents" 
 bibliography: references.bib
 ---
 
@@ -33,6 +36,8 @@ stop <- read_parquet(here::here("data/02-analysis_data/stop.parquet"))
 ```
 
 # Introduction
+
+## Overview
 Bike-sharing services have undoubtedly improved commuting efficiency, especially for short trips within a campus. For example, a study on bike-sharing in Xiamen, China, highlighted how data-driven analyses can inform policymakers about system performance, thereby guiding investments and policy decisions to enhance urban mobility[@xiamen]. However, in the Toronto region, despite a study by the University of Toronto's School of Cities showing that ridership increased from about 665,000 trips in 2015 to over 4.5 million in 2022[@liu2023bike], there has been little research focused on small-scale areas, such as universities, within Toronto. Furthermore, a study from Hangzhou, China, confirmed the significant differences in traveling characteristics between cities and university campuses[@hangzhou]. Therefore, this paper takes the University of Toronto as a case study to analyze bike-sharing usage within the campus.
 
 The core of this study is to extract a sample of 27 bike-sharing stations within the University of Toronto campus from all bike-sharing usage data between January 1, 2017, and September 30, 2024. The total usage of bike-sharing at each station is calculated for each 4-hour interval. A Bayesian Poisson regression model is then employed to predict the usage based on the station, year, month, date, and the specific 4-hour interval of the day.
@@ -42,7 +47,7 @@ This study found that although the usage at all stations within the University o
 
 Compared to the general statistics on bike-sharing usage in the Greater Toronto Area, these findings offer more detailed recommendations specifically for transportation planning and policy adjustments within the University of Toronto campus. They also provide guidance on how to better allocate, deploy, or store shared bikes.
 
-Structure: TBD
+The paper proceeds as follows: @sec-data outlines the data sources, processing techniques, and the variables employed in the study. @sec-model describes the Bayesian Poisson regression model used for prediction, including its formulation and validation. @sec-result discusses the results, emphasizing temporal and station-specific patterns in bike-sharing usage. @sec-discussion concludes with a discussion of the study’s contributions, limitations, and recommendations for future research. 
 
 ## Estimand
 This study aims to estimate the usage of a specific bike-sharing station within the University of Toronto campus during a particular 4-hour interval. By converting time into year, month, day, and the specific 4-hour interval of the day, it accounts for the overall trend, seasonal effects, and hourly variation in station usage. The core objective is to explore the temporal changes in the usage of 27 bike-sharing stations within the campus, thereby providing policymakers with recommendations for bike allocation to improve commuting efficiency on campus.
@@ -222,7 +227,9 @@ ggplot(merged_data, aes(x = station_name, y = count_difference)) +
   coord_flip()
 ```
 
-# Model
+# Model {#sec-model}
+
+## Model descriptions
 The model used in this study is as follows:
 
 \begin{equation*}
@@ -319,7 +326,7 @@ kable(credible_intervals_df, format = "html", digits = 8, align = "c",
 ```
 
 
-# Results
+# Results{#sec-result}
 This study ultimately predicted the usage volume of 27 shared bicycle stations within the University of Toronto's St. George campus during a 4-hour time window from 4:00 AM to 8:00 AM on September 26, 2025. The prediction was then compared to the usage volume recorded during the same period in 2024. @fig-result shows the results. 
 
 ```{r, fig.pos="H", fig.width=8, fig.height=6}
@@ -405,7 +412,7 @@ ggplot(data_long, aes(x = station_name, y = value, fill = Note)) +
 ```
 The prediction indicates an average increase of 2 uses per station across the 27 shared bike stations between 4:00 AM and 8:00 AM on September 26, 2025, compared to the same period in 2024. Specifically, 8 stations are projected to see an increase of 3 uses, 14 stations an increase of 2 uses, and 3 stations an increase of 1 use. Meanwhile, one station is expected to experience no change, and another is forecasted to see a decrease of 1 use. 
 
-# Discussion
+# Discussion{#sec-discussion}
 
 ## What the Study Brought to the World
 The study reveals a few key insights about bike-sharing usage on university campuses. Specifically, we learn that bike-sharing usage on the University of Toronto's St. George campus exhibits significant temporal patterns, influenced by season and time of day. For instance, usage drops significantly during winter months and peaks from 8 AM to 8 PM, with little demand between midnight and 8 AM. This indicates that bike-sharing systems need to adapt dynamically to changing demand patterns to be more effective, with an emphasis on considering seasonal and daily time variations for better resource allocation. 

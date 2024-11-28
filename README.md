@@ -1,30 +1,24 @@
-# Starter folder
+# Bikeshare Ridership Forecast
 
 ## Overview
 
-This repo provides students with a foundation for their own projects associated with *Telling Stories with Data*. You do not need every aspect for every paper and you should delete aspects that you do not need.
+This study uses Bayesian Poisson regression to predict the number of usage of bike-sharing stations at 27 locations on University of Toronto St. George campus for specific years, months, and four-hour intervals of the day.
 
 
 ## File Structure
 
 The repo is structured as:
 
--   `data/raw_data` contains the raw data as obtained from X.
--   `data/analysis_data` contains the cleaned dataset that was constructed.
+-   `data/00-simulated_data` contains the simulated datasets.
+-   `data/01-raw_data` contains the raw data as obtained from https://open.toronto.ca/dataset/bike-share-toronto-ridership-data/.
+-   `data/02-analysis_data` contains the cleaned dataset that was constructed.
 -   `model` contains fitted models. 
--   `other` contains relevant literature, details about LLM chat interactions, and sketches.
+-   `other` contains details about LLM chat interactions, sketches, datasheet.
 -   `paper` contains the files used to generate the paper, including the Quarto document and reference bibliography file, as well as the PDF of the paper. 
--   `scripts` contains the R scripts used to simulate, download and clean data.
+-   `scripts` contains the R scripts used to simulate data, download data, clean data, test data, fit models, validate models, and exploratory data analysis.
 
 
 ## Statement on LLM usage
 
-Aspects of the code were written with the help of the auto-complete tool, Codriver. The abstract and introduction were written with the help of ChatHorse and the entire chat history is available in inputs/llms/usage.txt.
+This project involved the guidance of Chat GPT for completing parts of the code, including data simulation, data cleaning, model fitting, and visualization. The complete conversation can be found at the following path: `other/llm_usage`.
 
-## Some checks
-
-- [ ] Change the rproj file name so that it's not starter_folder.Rproj
-- [ ] Change the README title so that it's not Starter folder
-- [ ] Remove files that you're not using
-- [ ] Update comments in R scripts
-- [ ] Remove this checklist
