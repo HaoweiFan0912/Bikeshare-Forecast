@@ -1,6 +1,6 @@
 ---
-title: "Analysis and Prediction of Shared Bicycle Usage at the University of Toronto St. George Campus"
-subtitle: "Main Finding TBD"
+title: "Prediction of Shared Bicycle Usage at the University of Toronto St. George Campus Using Bayesian Poisson Regression"
+subtitle: "Usage has risen sharply, with a steep decline in winter, and 79.8% occurs between 8 AM and 8 PM"
 author: 
   - Haowei Fan
 thanks: "Code and data are available at: https://github.com/HaoweiFan0912/Bikeshare-Forecast.git"
@@ -320,7 +320,7 @@ kable(credible_intervals_df, format = "html", digits = 8, align = "c",
 
 
 # Results
-
+This study ultimately predicted the usage volume of 27 shared bicycle stations within the University of Toronto's St. George campus during a 4-hour time window from 4:00 AM to 8:00 AM on September 26, 2025. The prediction was then compared to the usage volume recorded during the same period in 2024. @fig-result shows the results. 
 
 ```{r, fig.pos="H", fig.width=8, fig.height=6}
 #| label: fig-result
@@ -403,10 +403,34 @@ ggplot(data_long, aes(x = station_name, y = value, fill = Note)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 ```
-
+The prediction indicates an average increase of 2 uses per station across the 27 shared bike stations between 4:00 AM and 8:00 AM on September 26, 2025, compared to the same period in 2024. Specifically, 8 stations are projected to see an increase of 3 uses, 14 stations an increase of 2 uses, and 3 stations an increase of 1 use. Meanwhile, one station is expected to experience no change, and another is forecasted to see a decrease of 1 use. 
 
 # Discussion
 
+## What the Study Brought to the World
+The study reveals a few key insights about bike-sharing usage on university campuses. Specifically, we learn that bike-sharing usage on the University of Toronto's St. George campus exhibits significant temporal patterns, influenced by season and time of day. For instance, usage drops significantly during winter months and peaks from 8 AM to 8 PM, with little demand between midnight and 8 AM. This indicates that bike-sharing systems need to adapt dynamically to changing demand patterns to be more effective, with an emphasis on considering seasonal and daily time variations for better resource allocation. 
+
+The findings provide valuable lessons for urban planners and campus management on improving bike-sharing infrastructure by optimizing the number and distribution of bikes according to the predicted demand in different seasons and time slots. This also underscores the broader principle that effective urban transport planning, even at a small scale like a university campus, requires a data-driven approach to match supply with temporal demand.
+
+## Limitations
+This study employs a Bayesian Poisson regression model, which, while advantageous for handling count data, has significant limitations due to its assumptions. The Poisson model assumes that bike usage events are independent of one another, ignoring interactions among user behaviors, such as multiple users arriving at a station simultaneously during peak hours. Additionally, the model presumes a constant usage rate within each time period, which fails to capture dynamic fluctuations in reality, such as those caused by weather changes or campus events.
+
+The study only considers temporal variables (e.g., year, month, day, and hour) and excludes other critical external factors, significantly limiting the accuracy of its predictions. Weather conditions, for instance, have a substantial impact on bike usage; rainy, snowy, or extremely hot or cold days see a marked decline in usage frequency. Moreover, special events on campus and holidays directly affect bike demand. Neglecting these external factors prevents the model from accurately capturing fluctuations in actual demand.
+
+The handling of temporal variables in the model is relatively simplistic, overlooking potential complex interactions among these variables, which restricts the predictive performance. Poisson regression struggles to adequately address the high concentration of demand during peak periods, potentially underestimating peak usage. Consequently, more sophisticated and flexible models, such as random forests or deep learning approaches, may be better suited to capturing these intricate relationships and improving prediction accuracy.
+
+The study also falls short in validating the model's generalization capability. Although residual analysis and posterior predictive checks were used to evaluate model fit, there was no assessment of the model's predictive performance on unseen data, such as cross-validation or evaluation in different scenarios. Broader validation would enhance the model's robustness and reliability in practical applications.
+
+Additionally, choices made during the data cleaning process may affect the accuracy of the study's results. Excluding data from 2015–2016 improved data consistency but may have overlooked long-term trends in the evolution of the bike-sharing system. Furthermore, the way outliers and missing values were handled during data cleaning could significantly influence the model's outcomes. A lack of systematic and precise data standardization could lead to inconsistent model performance across data from different years, thereby affecting the reliability and accuracy of the predictions.
+
+## Suggestions for Future Research
+While this study successfully predicts bike-sharing usage at the University of Toronto's St. George campus, several areas warrant further exploration to enhance the reliability and applicability of the results.
+
+First, expanding the dataset to include additional environmental variables could provide deeper insights. Incorporating factors such as weather conditions, traffic congestion data, and socioeconomic variables could improve the model's accuracy, especially for predicting daily or hourly usage variations. Future studies could also include other campus transportation modes to enable a more comprehensive analysis of mobility patterns within the campus.
+
+Additionally, this research is limited to employing Bayesian Poisson regression. Exploring more advanced machine learning methods, such as random forests or neural networks, could improve prediction accuracy by capturing the nonlinear relationships among factors influencing bike-sharing usage.
+
+Another potential avenue for future research is extending the study beyond the campus. Comparing usage patterns across multiple university campuses could uncover broader trends and differences in bike-sharing demand. Such comparative analyses would help researchers and policymakers determine whether the usage patterns observed at the University of Toronto are unique or represent generalizable phenomena across other campuses.
 
 
 \newpage
