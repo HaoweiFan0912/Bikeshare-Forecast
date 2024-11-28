@@ -1,14 +1,13 @@
 #### Preamble ####
-# Purpose: Tests the structure and validity of the simulated Australian 
-  #electoral divisions dataset.
-# Author: Rohan Alexander
-# Date: 26 September 2024
-# Contact: rohan.alexander@utoronto.ca
-# License: MIT
-# Pre-requisites: 
-  # - The `tidyverse` package must be installed and loaded
-  # - 00-simulate_data.R must have been run
-# Any other information needed? Make sure you are in the `starter_folder` rproj
+# Purpose: Tests the structure and validity of the simulated data files.
+# Author: Haowei Fan
+# Date: November 28, 2024
+# Contact: haowei.fan@mail.utoronto.ca
+# License: Open Government License - Toronto
+# Pre-requisites: 00-simulate_data.R must have been run.
+# Any other information needed? Make sure you are in the `Bikeshare-Forecast.Rproj`.
+
+
 
 
 #### Workspace setup ####

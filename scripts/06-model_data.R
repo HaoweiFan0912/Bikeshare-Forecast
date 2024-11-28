@@ -1,11 +1,13 @@
 #### Preamble ####
-# Purpose: Models... [...UPDATE THIS...]
-# Author: Rohan Alexander [...UPDATE THIS...]
-# Date: 11 February 2023 [...UPDATE THIS...]
-# Contact: rohan.alexander@utoronto.ca [...UPDATE THIS...]
-# License: MIT
-# Pre-requisites: [...UPDATE THIS...]
-# Any other information needed? [...UPDATE THIS...]
+# Purpose: Fit the model to the cleaned data.
+# Author: Haowei Fan
+# Date: November 28, 2024
+# Contact: haowei.fan@mail.utoronto.ca
+# License: Open Government License - Toronto
+# Pre-requisites: 03-clean_data.R must have been run.
+# Any other information needed? Make sure you are in the `Bikeshare-Forecast.Rproj`.
+
+
 
 
 #### Workspace setup ####

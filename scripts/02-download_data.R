@@ -1,11 +1,14 @@
 #### Preamble ####
-# Purpose: Downloads and saves the data from [...UPDATE THIS...]
-# Author: Rohan Alexander [...UPDATE THIS...]
-# Date: 11 February 2023 [...UPDATE THIS...]
-# Contact: rohan.alexander@utoronto.ca [...UPDATE THIS...]
-# License: MIT
-# Pre-requisites: [...UPDATE THIS...]
-# Any other information needed? [...UPDATE THIS...]
+# Purpose: Downloads and saves the data from https://open.toronto.ca/dataset/bike-share-toronto-ridership-data/
+# Author: Haowei Fan
+# Date: November 28, 2024
+# Contact: haowei.fan@mail.utoronto.ca
+# License: Open Government License - Toronto
+# Pre-requisites: Be able to access this website: https://open.toronto.ca/dataset/bike-share-toronto-ridership-data/.
+# Any other information needed? Make sure you are in the `Bikeshare-Forecast.Rproj`.
+
+
+
 
 #### Workspace setup ####
 set.seed(912)

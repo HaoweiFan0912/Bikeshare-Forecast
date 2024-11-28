@@ -1,12 +1,14 @@
 ---
-title: "Prediction of Shared Bicycle Usage at the University of Toronto St. George Campus Using Bayesian Poisson Regression"
-subtitle: "Usage has risen sharply, with a steep decline in winter, and 79.8% occurs between 8 AM and 8 PM"
+title: "Predicting Bike Usage at UofT St. George with Bayesian Poisson Regression"
+subtitle: "Usage grows by one every 20 days, drops to nearly zero in winter, with 79% occurring between 8 AM and 8 PM"
+
+
 author: 
   - Haowei Fan
 thanks: "Code and data are available at: https://github.com/HaoweiFan0912/Bikeshare-Forecast.git"
 date: today
 date-format: long
-abstract: "Students and staff at the University of Toronto's St. George campus often face difficulties finding a bike-sharing parking spot when arriving at campus, and finding a bike when leaving, which highlights the need for effective prediction of future bike-sharing demand to support campus commuting infrastructure. This study uses Bayesian Poisson regression to predict the usage of bike-sharing stations at 27 locations on campus for specific years, months, and  four-hour intervals of the day. The results indicate that, on September 26, 2025, from 4:00 to 8:00 AM, usage at 8 stations will increase by 3, 14 stations by 2, 3 stations by 1, 1 station remains unchanged, and 1 station will decrease by 1 compared to the same period in 2024."
+abstract: "University of Toronto's St. George campus students and staff frequently encounter challenges in locating available bike-sharing parking spots upon arrival and bikes upon leaving [@elassi2017bike], underscoring the necessity for accurate predictions of future bike-sharing demand to optimize campus commuting infrastructure. This study employs Bayesian Poisson regression to predict the utilization of bike-sharing stations at 27 locations across campus for specific years, months, and four-hour intervals of the day. The results indicate that bike-sharing usage across campus is experiencing rapid growth, with a sharp decline during the winter months and 79.8% of peak usage consistently observed between 8:00 AM and 8:00 PM daily. Specifically, on September 26, 2025, between 4:00 and 8:00 AM, the usage of 8 stations is projected to increase by 3 bikes, 14 stations by 2 bikes, 3 stations by 1 bike, while 1 station will remain unchanged, and 1 station will see a decrease by 1 bike, compared to the same timeframe in 2024."
 format: pdf
 toc-depth: 2    
 number-sections: true
@@ -38,16 +40,16 @@ stop <- read_parquet(here::here("data/02-analysis_data/stop.parquet"))
 # Introduction
 
 ## Overview
-Bike-sharing services have undoubtedly improved commuting efficiency, especially for short trips within a campus. For example, a study on bike-sharing in Xiamen, China, highlighted how data-driven analyses can inform policymakers about system performance, thereby guiding investments and policy decisions to enhance urban mobility[@xiamen]. However, in the Toronto region, despite a study by the University of Toronto's School of Cities showing that ridership increased from about 665,000 trips in 2015 to over 4.5 million in 2022[@liu2023bike], there has been little research focused on small-scale areas, such as universities, within Toronto. Furthermore, a study from Hangzhou, China, confirmed the significant differences in traveling characteristics between cities and university campuses[@hangzhou]. Therefore, this paper takes the University of Toronto as a case study to analyze bike-sharing usage within the campus.
+Bike-sharing services have experienced rapid growth in the Toronto region, with ridership rising dramatically from approximately 665,000 trips in 2015 to over 4.5 million in 2022, according to a study by the University of Toronto's School of Cities[@liu2023bike]. This rapid increase highlights the critical need for data-driven analyses to optimize bike-sharing systems and guide policy decisions that can further enhance urban mobility[@xiamen]. While city-wide studies provide valuable insights, research from Hangzhou, China, has demonstrated that bike-sharing usage patterns can vary significantly between urban areas and university campuses[@hangzhou]. These differences suggest that general urban studies conducted in the Toronto region may not fully capture the unique dynamics of campus-based bike-sharing systems. Therefore, to address this gap in the literature, this study focuses on the University of Toronto St. George Campus as a case study, analyzing bike-sharing usage within the campus in Toronto to provide a nuanced understanding of its role in campus mobility and inform policies tailored to similar settings.
 
 The core of this study is to extract a sample of 27 bike-sharing stations within the University of Toronto campus from all bike-sharing usage data between January 1, 2017, and September 30, 2024. The total usage of bike-sharing at each station is calculated for each 4-hour interval. A Bayesian Poisson regression model is then employed to predict the usage based on the station, year, month, date, and the specific 4-hour interval of the day.
 
-This study found that although the usage at all stations within the University of Toronto campus has increased rapidly each year, there are significant seasonal differences. During winter, usage at all stations, regardless of the year, remains close to zero. Additionally, from January to September each year, the usage shows an upward trend, which then gradually declines over the following months. There are also significant differences in usage across different times of the day. The period from 8 am to 8 pm accounts for an average of 79.8% of daily usage, while the period from midnight to 8 am accounts for only 6.8%. It is noteworthy that this project forecasts an average increase of 2 uses across 27 stations between 4:00 AM and 8:00 AM on September 26, 2025, compared to the same time period in 2024. Specifically, usage at 8 stations is expected to increase by 3, 14 stations by 2, and 3 stations by 1, while 1 station will remain unchanged and another will decrease by 1.
-
+This study found that although the usage at all stations within the University of Toronto campus has increased by an average of one user every 20 days each year, there are significant seasonal differences. During winter, usage at all stations, regardless of the year, remains close to zero. Additionally, from January to September each year, the usage shows an upward trend, which then gradually declines over the following months. There are also significant differences in usage across different times of the day. The period from 8 am to 8 pm accounts for an average of 79.8% of daily usage, while the period from midnight to 8 am accounts for only 6.8%. It is noteworthy that this project forecasts an average increase of 2 uses across 27 stations between 4:00 AM and 8:00 AM on September 26, 2025, compared to the same time period in 2024. Specifically, usage at 8 stations is expected to increase by 3, 14 stations by 2, and 3 stations by 1, while 1 station will remain unchanged and another will decrease by 1.
 
 Compared to the general statistics on bike-sharing usage in the Greater Toronto Area, these findings offer more detailed recommendations specifically for transportation planning and policy adjustments within the University of Toronto campus. They also provide guidance on how to better allocate, deploy, or store shared bikes.
 
-The paper proceeds as follows: @sec-data outlines the data sources, processing techniques, and the variables employed in the study. @sec-model describes the Bayesian Poisson regression model used for prediction, including its formulation and validation. @sec-result discusses the results, emphasizing temporal and station-specific patterns in bike-sharing usage. @sec-discussion concludes with a discussion of the study’s contributions, limitations, and recommendations for future research. 
+** ToBeMoreSpecific**
+The paper proceeds as follows: @sec-data outlines the data sources, processing techniques, and the variables employed in the study. @sec-model describes the Bayesian Poisson regression model used for prediction, including its formulation and validation. @sec-result discusses the results, emphasizing temporal and station-specific patterns in bike-sharing usage. @sec-discussion concludes with a discussion of the study’s contributions, limitations, and recommendations for future research.
 
 ## Estimand
 This study aims to estimate the usage of a specific bike-sharing station within the University of Toronto campus during a particular 4-hour interval. By converting time into year, month, day, and the specific 4-hour interval of the day, it accounts for the overall trend, seasonal effects, and hourly variation in station usage. The core objective is to explore the temporal changes in the usage of 27 bike-sharing stations within the campus, thereby providing policymakers with recommendations for bike allocation to improve commuting efficiency on campus.
@@ -55,7 +57,9 @@ This study aims to estimate the usage of a specific bike-sharing station within 
 # Data {#sec-data}
 
 ## Overview
-The dataset used in this study comes from opendatatoronto [@opendata], uploaded by Toronto Parking Authority and collected by Bike Share Toronto. It records every bike-sharing usage in the Toronto area from 2015 to September 30, 2024, with a total of 28,017,329 records. The variables included in the data differ across years, but they all contain the following variables: Trip ID, Trip Duration, Trip Start Station ID, Trip Start Time, Trip Start Station Location, Trip End Station ID, Trip End Time, Trip End Station Location, Bike ID, and User Type.
+The dataset used in this study comes from opendatatoronto [@opendata], uploaded by Toronto Parking Authority[@greenp] and collected by Bike Share Toronto[@bike]. It records every bike-sharing usage in the Toronto area from 2015 to September 30, 2024, with a total of 28,017,329 records. The variables included in the data differ across years, but they all contain the following variables: Trip ID, Trip Duration, Trip Start Station ID, Trip Start Time, Trip Start Station Location, Trip End Station ID, Trip End Time, Trip End Station Location, Bike ID, and User Type.
+
+Many bike-sharing service providers worldwide have made their operational data publicly available for research purposes. For instance, the Shenzhen Municipal Transport Bureau in China released a dataset containing partial bike-sharing order information from January to August 2021. This dataset includes eight variables: user ID, start time, start longitude, start latitude, end time, end longitude, end latitude, and company ID, with a total of approximately 240 million records [@szdd]. While this dataset offers a rich variety of variables, it has limitations that make it unsuitable for my research. The data only covers an eight-month period, which is insufficient to capture long-term trends in bike-sharing usage. Additionally, university campuses in China are typically closed environments, unlike the open urban settings of Toronto, making the data less generalizable for my research context. Similar issues are present in other bike-sharing datasets from different regions. These include limited temporal coverage, which restricts long-term analysis, strong regional characteristics influenced by local cultural habits, and significant variations in data quality and structure due to fierce market competition among bike-sharing companies. These factors make it challenging to integrate data across companies or regions. Therefore, while these datasets may hold value for other studies, they do not meet the requirements of my research.
 
 This study follows the workflow of Telling Stories with Data [@tellingstories], using its initial folder structure and part of its code. Data downloading, cleaning, modeling, and visualization were carried out using R [@citeR]. The following R libraries were also used alongside R:
 
@@ -89,7 +93,7 @@ This study follows the workflow of Telling Stories with Data [@tellingstories], 
 	
 To predict the relationship between bike-sharing usage and time within the University of Toronto's St. George campus, this study requires a time series to describe the changes in usage at different stations over time. Therefore, the dataset published by opendatatoronto [@opendata], which records every instance of bike-sharing usage in the Toronto area since 2015, is ideal for this study. Additionally, this data is ideal because of its reliability—due to the commercial nature of bike-sharing, the specific time and location of each bike's use and return are accurately recorded. However, the raw data cannot be used directly in this project; sophisticated data cleaning is required, with specific steps and reasons as follows:
 
-First, data from 2015-2016 was excluded because the collection and recording methods for those years differ significantly from later years and do not include the time and station variables required for this study. Next, data for stations located within the University of Toronto's St. George campus was extracted from all remaining samples, and the usage of each station was calculated for every four-hour interval. Finally, the data format was standardized for subsequent analysis. The cleaned data is in the format of @tbl-cleaned_data.
+First, data from 2015-2016 was excluded because the collection and recording methods for those years differ significantly from later years and do not include the time and station variables required for this study. Next, data for stations located within the University of Toronto's St. George campus was extracted from all remaining samples, and the usage of each station was calculated for every four-hour interval. Finally, the variables of interest were extracted, and the data format was standardized for subsequent analysis. The cleaned data is presented in the format of @tbl-cleaned_data.
 
 ```{r}
 #| warning: false
@@ -112,23 +116,56 @@ This study focuses on the following variables:
 - `time`: An independent variable representing the time interval. For example, "2024-09-29 12:00:00" represents the time interval from 12 pm to 4 pm on September 29, 2024, in a 24-hour format. The earliest `time` is "2017-01-01 00:00:00," and the latest is "2024-09-30 24:00:00."
 - `station_name`: An independent variable representing the unique name of one of the 27 stations within the University of Toronto's St. George campus.
 
-@fig-daily_usage shows the daily usage totals of 27 shared bicycle stations from January 1, 2017, to September 30, 2024. It can be observed that the overall usage exhibits a significant upward trend, particularly after 2021, where usage fluctuations increased noticeably. In 2024, several peaks in daily usage reached historical highs, indicating a substantial growth in user demand. Additionally, the data displays some seasonal variations, with noticeable declines during the winter months and increases during spring and summer.
+@tbl-varibale is the summary of varibales. It is evident that the dataset includes 27 unique station names and spans nearly eight years (from January 1, 2017, to September 30, 2024), providing opportunities to analyze long-term trends and seasonal variations. In the count column, the minimum and median values are both 1, the mean is 2, the first quartile is 1, the third quartile is 3, and the maximum reaches 31, showing a significant right-skewed distribution. This indicates that most of the records have low count values, but there are a few extreme high values.
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+#| label: tbl-varibale
+#| tbl-cap: "Variables' summary"
+count_min <- min(start$count)
+count_1st_qu <- quantile(start$count, 0.25)
+count_median <- median(start$count)
+count_mean <- mean(start$count)
+count_3rd_qu <- quantile(start$count, 0.75)
+count_max <- max(start$count)
+
+summ <- data_frame(station_name = c("Type: Character", "Number of Unique Values: 27", NA, NA, NA, NA),
+                   time = c("Earliest: 2017-01-01 04:00:00", "Latest: 2024-09-30 20:00:00", NA, NA, NA, NA),
+                   count = c(paste("min:",count_min),
+                             paste("1st Qu:",count_1st_qu),
+                             paste("median:",count_median),
+                             paste("mean:", round(count_mean,0)),
+                             paste("3rd Qu:",count_3rd_qu),
+                             paste("max:",count_max)))
+
+kable(summ)
+
+```
+
+
+@fig-daily_usage shows the daily usage totals of 27 shared bicycle stations from January 1, 2017, to September 30, 2024. It can be observed that the usage of the 27 bike-sharing stations at the University of Toronto's St. George campus has shown a steady upward trend, with an average increase of 1 use every 20 days. At the same time, there are clear seasonal variations: usage is higher in the spring and summer months (April to September) and significantly lower in the fall and winter months (October to March). Additionally, there was an abnormal surge in usage from June to September 2024, which can be attributed to two main reasons. First, historical data indicates that usage typically spikes in August and September each year, likely due to increased demand from students returning to campus for the start of the academic year. Second, during the same period in 2024, Bike Share Toronto added 52 new stations, most of which were located near the St. George campus, significantly enhancing the network's coverage and convenience[@bike]. These two factors combined led to the appearance of anomalies in August and September 2024.
 ```{r, fig.pos="H"}
 #| label: fig-daily_usage
 #| fig-cap: Daily usage from January 2017 to September 2024
 #| echo: false
 #| message: false
 #| warning: false
-start_asdate <- start 
-start_asdate$time <- as.Date(start_asdate$time)
-daily_counts <- start_asdate %>%
-  group_by(time) %>%
-  summarise(total_count = sum(count))
+# 计算线性模型
+lm_model <- lm(total_count ~ time, data = daily_counts)
+
+# 提取斜率
+slope <- coef(lm_model)["time"]
+
 ggplot(data = daily_counts, aes(x = time, y = total_count)) +
   geom_point() +
   labs(x = "Time", y = "Count") +
-  theme_minimal()+  
-  geom_smooth(method = "lm")  
+  theme_minimal() +
+  geom_smooth(method = "lm") +
+  annotate("text", x = max(daily_counts$time), y = max(daily_counts$total_count), 
+           label = paste("Slope =", round(slope, 2)), hjust = 1.3)
+
+
 ```
 
 hows the total usage and percentage of shared bicycles during different time intervals in a day from January 1, 2017, to September 30, 2024. It can be observed that the peak usage occurs between 12:00 to 16:00 (28.5%) and 16:00 to 20:00 (31.4%). The usage between 08:00 to 12:00 accounts for 19.9%, while the usage from 20:00 to 00:00 accounts for 13.4%. The time intervals with the lowest usage are 00:00 to 04:00 (3.6%) and 04:00 to 08:00 (3.2%).
@@ -257,6 +294,10 @@ For the coefficients $\beta_1, \beta_2, \beta_3, \beta_4$, which correspond to t
 
 This study employs the Poisson model, which assumes that the events under investigation are discrete and countable, occurring within a fixed time or spatial interval. Furthermore, it assumes that the occurrences of events are independent of each other, and the average rate of occurrence ($\lambda$) remains constant over the specified interval. Lastly, it is assumed that at most one event can occur within an extremely short time or spatial interval. These assumptions enable the Poisson distribution to effectively describe the probabilistic characteristics of the events.
 
+The model was chosen based on the nature of the variable *count*, as this study hypothesizes that a Poisson distribution may better explain its discrete and non-negative characteristics. The selection of predictors is informed by the data structure: *year* is included to capture the overall upward trend over time, *month* and *day* account for seasonal variations, and *hour* reflects daily usage differences. This approach ensures that the model effectively addresses the temporal and seasonal dynamics inherent in the data.
+
+This study considered using the ARIMA (autoregressive integrated moving average) model as an alternative but ultimately decided against it due to its limitations in capturing the specific characteristics of bike-sharing usage data. Bike-sharing usage exhibits significant seasonal patterns, time-of-day effects, and count-based characteristics, while ARIMA models are primarily suited for stationary time series with linear autocorrelations. ARIMA struggles to effectively address non-stationary trends and overdispersion, such as the marked decrease in usage during winter. Although extensions like SARIMA (Seasonal ARIMA) can account for seasonality, they still cannot directly handle the count-based nature of the data. In contrast, Bayesian Poisson regression is specifically designed for count data, allowing for the flexible integration of variables such as year, month, and specific four-hour intervals. Additionally, the Bayesian framework provides posterior distributions, offering deeper insights into parameter uncertainty and variability, which are critical for policy decisions. Therefore, Bayesian Poisson regression is more suitable for this study than the ARMA model.
+
 ## Validation
 @fig-PPvsFV is the residual plot. It demonstrates several strengths of the model. First, the residuals are primarily distributed around the zero line, indicating that the model does not exhibit significant systematic bias in its predictions. This suggests that the model is generally effective at capturing the central trends of the data. Second, the residual distribution shows a consistent linear pattern, reflecting the model's stability across different levels of fitted values. This consistency implies that the model performs reliably in its predictions for various ranges of the response variable. Third, the model successfully captures localized patterns in the data, as evidenced by the structured yet controlled behavior of the residuals. 
 
@@ -321,7 +362,7 @@ credible_intervals <- apply(posterior_draws, 2, function(x) quantile(x, probs = 
 credible_intervals_df <- t(credible_intervals)  # Transpose to match the desired layout
 
 # Display as a table
-kable(credible_intervals_df, format = "html", digits = 8, align = "c",
+kable(credible_intervals_df, format = "html", digits = 2, align = "c",
       col.names = c("2.5%", "97.5%"))
 ```
 

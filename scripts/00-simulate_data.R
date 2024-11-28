@@ -1,12 +1,11 @@
 #### Preamble ####
-# Purpose: Simulates a dataset of Australian electoral divisions, including the 
-  #state and party that won each division.
-# Author: Rohan Alexander
-# Date: 26 September 2024
-# Contact: rohan.alexander@utoronto.ca
-# License: MIT
-# Pre-requisites: The `tidyverse` package must be installed
-# Any other information needed? Make sure you are in the `starter_folder` rproj
+# Purpose: Simulate the usage data for each bike-sharing station within the University of Toronto's St. George campus, including the station name, 4-hour time intervals, and the total usage within each time interval.
+# Author: Haowei Fan
+# Date: November 28, 2024
+# Contact: haowei.fan@mail.utoronto.ca
+# License: Open Government License - Toronto
+# Pre-requisites: None
+# Any other information needed? Make sure you are in the `Bikeshare-Forecast.Rproj`.
 
 
 #### Workspace setup ####
