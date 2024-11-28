@@ -11,7 +11,7 @@
 #### Workspace setup ####
 set.seed(912)
 # List of necessary packages
-packages <- c("arrow", "lubridate", "dplyr", "brms", "rstanarm","tidyverse","forecast","tseries")
+packages <- c("arrow", "lubridate", "dplyr", "brms", "rstanarm","tidyverse")
 # Install missing packages
 missing_packages <- packages[!(packages %in% installed.packages()[, "Package"])]
 install.packages(missing_packages)

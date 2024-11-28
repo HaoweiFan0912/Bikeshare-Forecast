@@ -20,7 +20,7 @@ bibliography: references.bib
 #### Workspace setup ####
 set.seed(912)
 # List of necessary packages
-packages <- c("tidyverse", "dplyr", "arrow", "sf", "ggplot2", "ggspatial", "RColorBrewer", "knitr", "bayesplot", "kableExtra")
+packages <- c("tidyverse", "dplyr", "arrow", "ggplot2", "RColorBrewer", "knitr", "bayesplot", "kableExtra")
 # Install missing packages
 missing_packages <- packages[!(packages %in% installed.packages()[, "Package"])]
 install.packages(missing_packages)
@@ -33,7 +33,7 @@ stop <- read_parquet(here::here("data/02-analysis_data/stop.parquet"))
 ```
 
 # Introduction
-Bike-sharing services have undoubtedly improved commuting efficiency, especially for short trips within a campus. For example, a study on bike-sharing in Xiamen, China, highlighted how data-driven analyses can inform policymakers about system performance, thereby guiding investments and policy decisions to enhance urban mobility[https://arxiv.org/abs/2401.03987?utm_source=chatgpt.com]. However, in the Toronto region, despite a study by the University of Toronto's School of Cities showing that ridership increased from about 665,000 trips in 2015 to over 4.5 million in 2022[https://schoolofcities.github.io/bike-share-toronto/growth], there has been little research focused on small-scale areas, such as universities, within Toronto. Furthermore, a study from Hangzhou, China, confirmed the significant differences in traveling characteristics between cities and university campuses[https://file.techscience.com/uploads/attached/file/20200916/20200916072445_75552.pdf?utm_source=chatgpt.com]. Therefore, this paper takes the University of Toronto as a case study to analyze bike-sharing usage within the campus.
+Bike-sharing services have undoubtedly improved commuting efficiency, especially for short trips within a campus. For example, a study on bike-sharing in Xiamen, China, highlighted how data-driven analyses can inform policymakers about system performance, thereby guiding investments and policy decisions to enhance urban mobility[@xiamen]. However, in the Toronto region, despite a study by the University of Toronto's School of Cities showing that ridership increased from about 665,000 trips in 2015 to over 4.5 million in 2022[@liu2023bike], there has been little research focused on small-scale areas, such as universities, within Toronto. Furthermore, a study from Hangzhou, China, confirmed the significant differences in traveling characteristics between cities and university campuses[@hangzhou]. Therefore, this paper takes the University of Toronto as a case study to analyze bike-sharing usage within the campus.
 
 The core of this study is to extract a sample of 27 bike-sharing stations within the University of Toronto campus from all bike-sharing usage data between January 1, 2017, and September 30, 2024. The total usage of bike-sharing at each station is calculated for each 4-hour interval. A Bayesian Poisson regression model is then employed to predict the usage based on the station, year, month, date, and the specific 4-hour interval of the day.
 
@@ -50,15 +50,39 @@ This study aims to estimate the usage of a specific bike-sharing station within 
 # Data {#sec-data}
 
 ## Overview
-The dataset used in this study comes from opendatatoronto [opendatatoronto], uploaded by Toronto Parking Authority and collected by Bike Share Toronto. It records every bike-sharing usage in the Toronto area from 2015 to September 30, 2024, with a total of 28,017,329 records. The variables included in the data differ across years, but they all contain the following variables: Trip ID, Trip Duration, Trip Start Station ID, Trip Start Time, Trip Start Station Location, Trip End Station ID, Trip End Time, Trip End Station Location, Bike ID, and User Type.
+The dataset used in this study comes from opendatatoronto [@opendata], uploaded by Toronto Parking Authority and collected by Bike Share Toronto. It records every bike-sharing usage in the Toronto area from 2015 to September 30, 2024, with a total of 28,017,329 records. The variables included in the data differ across years, but they all contain the following variables: Trip ID, Trip Duration, Trip Start Station ID, Trip Start Time, Trip Start Station Location, Trip End Station ID, Trip End Time, Trip End Station Location, Bike ID, and User Type.
 
-This study follows the workflow of Telling Stories with Data [Telling Stories with Data], using its initial folder structure and part of its code. Data downloading, cleaning, modeling, and visualization were carried out using R [R]. The following R libraries were also used alongside R:
+This study follows the workflow of Telling Stories with Data [@tellingstories], using its initial folder structure and part of its code. Data downloading, cleaning, modeling, and visualization were carried out using R [@citeR]. The following R libraries were also used alongside R:
 
-TBD
+**tidyverse**[@tidyverse]: Used for data wrangling, cleaning, and analysis, integrating multiple data manipulation packages.
+
+**dplyr**[@dplyr]: Used for data frame operations such as filtering, sorting, and aggregation.
+
+**arrow**[@arrow]: Used for reading and writing data in efficient formats like Parquet to speed up processing.
+
+**stringr**[@stringr]: Used for handling and manipulating strings, allowing for text data cleaning and transformation.
+
+**readr**[@readr]: Used for fast reading of CSV and other text formats.
+
+**lubridate**[@lubridate]: Used for handling and converting date-time data, simplifying time-related data analysis.
+
+**brms**[@brms]: Used for building and estimating Bayesian regression models for flexible data analysis.
+
+**rstanarm**[@rstanarm]: Used for Bayesian regression modeling, helping to understand uncertainty better.
+
+**bayesplot**[@bayesplot]: Used for visualizing posterior distributions and diagnostic plots of Bayesian models.
+
+**ggplot2**[@ggplot2]: Used for creating various types of plots, supporting exploratory data analysis and result presentation.
+
+**RColorBrewer**[@RColorBrewer]: Used for generating color palettes to create visually distinct and appealing plots.
+
+**knitr**[@knitr]: Used for generating dynamic reports, integrating analysis results into documents.
+
+**kableExtra**[@kableExtra]: Used for enhancing the presentation of tables, making tables in reports more visually appealing.
 
 ## Measurement
 	
-To predict the relationship between bike-sharing usage and time within the University of Toronto's St. George campus, this study requires a time series to describe the changes in usage at different stations over time. Therefore, the dataset published by opendatatoronto [opendatatoronto], which records every instance of bike-sharing usage in the Toronto area since 2015, is ideal for this study. Additionally, this data is ideal because of its reliability—due to the commercial nature of bike-sharing, the specific time and location of each bike's use and return are accurately recorded. However, the raw data cannot be used directly in this project; sophisticated data cleaning is required, with specific steps and reasons as follows:
+To predict the relationship between bike-sharing usage and time within the University of Toronto's St. George campus, this study requires a time series to describe the changes in usage at different stations over time. Therefore, the dataset published by opendatatoronto [@opendata], which records every instance of bike-sharing usage in the Toronto area since 2015, is ideal for this study. Additionally, this data is ideal because of its reliability—due to the commercial nature of bike-sharing, the specific time and location of each bike's use and return are accurately recorded. However, the raw data cannot be used directly in this project; sophisticated data cleaning is required, with specific steps and reasons as follows:
 
 First, data from 2015-2016 was excluded because the collection and recording methods for those years differ significantly from later years and do not include the time and station variables required for this study. Next, data for stations located within the University of Toronto's St. George campus was extracted from all remaining samples, and the usage of each station was calculated for every four-hour interval. Finally, the data format was standardized for subsequent analysis. The cleaned data is in the format of @tbl-cleaned_data.
 
@@ -224,8 +248,10 @@ The intercept $\beta_0$ represents the baseline level of the response variable `
 
 For the coefficients $\beta_1, \beta_2, \beta_3, \beta_4$, which correspond to the predictors `hour`, `day`, `month`, and `year`, a narrower prior distribution, $\mathcal{N}(0, 2)$, is used. This reflects the assumption that the effects of these variables on `count` are likely to be moderate and within a reasonable range. The smaller standard deviation imposes stronger constraints on these effects, preventing them from causing unrealistic shifts in the predictions. At the same time, the prior remains flexible enough to allow the model to learn the actual effects of these time-related factors on demand patterns from the data.
 
+This study employs the Poisson model, which assumes that the events under investigation are discrete and countable, occurring within a fixed time or spatial interval. Furthermore, it assumes that the occurrences of events are independent of each other, and the average rate of occurrence ($\lambda$) remains constant over the specified interval. Lastly, it is assumed that at most one event can occur within an extremely short time or spatial interval. These assumptions enable the Poisson distribution to effectively describe the probabilistic characteristics of the events.
+
 ## Validation
-@fig-PPvsFV is the residual plot. It can be observed that the model performs well overall in the following aspects: First, most residuals are distributed around the zero line, indicating that the model has no significant systematic bias and can effectively capture the trend of `count`. Second, the majority of residuals have small absolute values, approximately within the range of $[-2, 2]$, suggesting that the model provides reliable predictions for most samples with minimal errors. Third, there is no significant nonlinear pattern between the residuals and fitted values, such as obvious curves or systematic relationships, demonstrating that the model structure captures the key influencing factors and fits the data reasonably well. Fourth, although there are a few points with larger residuals (e.g., Pearson residuals greater than 4), their number is small, and the overall predictions are not significantly affected by these outliers, reflecting the model's robustness. Fifth, if this is a relatively simple model (e.g., linear or generalized linear model), the current results indicate that the variable selection and model design are meaningful. 
+@fig-PPvsFV is the residual plot. It demonstrates several strengths of the model. First, the residuals are primarily distributed around the zero line, indicating that the model does not exhibit significant systematic bias in its predictions. This suggests that the model is generally effective at capturing the central trends of the data. Second, the residual distribution shows a consistent linear pattern, reflecting the model's stability across different levels of fitted values. This consistency implies that the model performs reliably in its predictions for various ranges of the response variable. Third, the model successfully captures localized patterns in the data, as evidenced by the structured yet controlled behavior of the residuals. 
 
 ```{r, fig.pos="H"}
 #| label: fig-PPvsFV
@@ -234,7 +260,7 @@ For the coefficients $\beta_1, \beta_2, \beta_3, \beta_4$, which correspond to t
 #| message: false
 #| warning: false
 options(scipen = 999)
-poisson_glm <- readRDS(here::here("models/Galbraith_Rd___King's_College_Rd.rds"))
+poisson_glm <- readRDS(here::here("models/College_St___Huron_St.rds"))
 data <- read_parquet(here::here("data/02-analysis_data/start.parquet")) %>% filter(station_name == "Galbraith Rd / King's College Rd
 ")%>%
     mutate(
@@ -253,10 +279,11 @@ deviance_residuals <- residuals(poisson_glm, type = "deviance")
 ggplot(data, aes(x = fitted(poisson_glm), y = pearson_residuals)) +
   geom_point() +
   geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
-  labs(title = "Pearson Residuals vs Fitted Values", x = "Fitted Values", y = "Pearson Residuals")
+  labs(x = "Fitted Values", y = "Pearson Residuals")
 
 ```
-@fig-PPplot is the posterior predictive check plot. It demonstrates that the model performs well in capturing the overall distribution of the observed data. Specifically, the primary density peak of the observed data ($y$) between 0 and 3 aligns closely with the predictive distributions ($y_{rep}$), indicating that the model successfully captures the main trends of the data. Additionally, the tails of the predictive distributions, particularly for values greater than 6, show a consistent pattern with the observed data. This suggests that the model is capable of reasonably approximating the low-frequency occurrences in the dataset, ensuring that the overall fit is robust across both the high-density and low-density regions. 
+@fig-PPplot is the posterior predictive check plot. The posterior predictive check plot highlights several strengths of the model. The predicted distribution ($y_{rep}$) closely aligns with the observed distribution ($y$), particularly at the primary density peak near 0 and the secondary peaks within the 2-5 range, indicating that the model effectively captures the overall data distribution. Additionally, the model successfully reflects the multimodal nature of the data, accurately identifying multiple peaks, which demonstrates its capability to handle complex data patterns. The tail behavior of the predicted distribution is also consistent with the observed distribution, showing that the model performs well in accounting for rare or extreme events. Furthermore, the uncertainty of the predicted distribution is appropriately moderate, neither too narrow to indicate overconfidence nor too wide to suggest excessive variability. 
+
 ```{r, fig.pos="H"}
 #| label: fig-PPplot
 #| fig-cap: Posterior Predictive Checks
@@ -264,9 +291,13 @@ ggplot(data, aes(x = fitted(poisson_glm), y = pearson_residuals)) +
 #| message: false
 #| warning: false
 # 5. Posterior Predictive Checks
-pp_check(poisson_glm, plotfun = "dens_overlay", nreps = 100) # Overlay of predictive densities
+pp_check(poisson_glm, plotfun = "dens_overlay", nreps = 100) +
+  labs(
+    x = "Count",  
+    y = "Estimated density"         
+  ) 
 ```
-The model demonstrates several strengths based on the parameter estimates and confidence intervals shown in @tbl-crediinte. It successfully identifies `month` as a significant predictor, with its confidence interval excluding zero, indicating a strong and meaningful influence on the response variable. This highlights the model’s ability to capture the seasonal trends that are crucial for predicting bike-sharing demand. Additionally, the predictors (`hour`, `day`, `month`) are time-related and intuitive, making the model highly interpretable. The coefficients and confidence intervals are relatively small, reflecting stable estimates without extreme effects, which enhances the model’s robustness and generalizability. Furthermore, the insignificant effects of `hour` and `day` suggest that the model avoids overfitting by not overemphasizing less impactful predictors. The chosen priors are reasonable, allowing data to guide the posterior updates effectively, especially for identifying the critical role of `month`. Overall, the model strikes a good balance between stability, interpretability, and predictive power, making it a solid foundation for understanding and forecasting seasonal trends.
+The credible intervals shown in @tbl-crediinte highlight several strengths of the model. Key variables such as hour, month, and year have narrow credible intervals that do not include zero, indicating their significant and consistent influence on the response variable. This demonstrates the model’s ability to effectively capture critical trends and relationships in the data, particularly those related to time and seasonal effects. Additionally, the relatively small width of these intervals reflects the stability and reliability of parameter estimates, suggesting that the model is well-calibrated and robust in its predictions. The intercept, while having a broader credible interval, provides a reasonable baseline estimate, reflecting the overall level of the response variable.
 
 ```{r}
 #| warning: false
@@ -288,124 +319,325 @@ kable(credible_intervals_df, format = "html", digits = 8, align = "c",
 ```
 
 
+# Results
+
+
+```{r, fig.pos="H", fig.width=8, fig.height=6}
+#| label: fig-result
+#| fig-cap: "The actual count from 4:00 AM to 8:00 AM on September 26, 2024 vs the predicted count for the same time interval in 2025."
+#| echo: false
+#| message: false
+#| warning: false
+ut_stations <- c("Madison Ave / Bloor St W", "Bloor St W / Huron St", "St. George St / Bloor St W", 
+                 "Sussex Ave / St George St", "Spadina Ave / Sussex Ave", "Spadina Ave / Harbord St - SMART",
+                 "St. George St / Hoskin Ave", "Spadina Ave / Willcocks St", "St. George St / Willcocks St",
+                 "Willcocks St / St. George St", "Queen's Park / Bloor St W", "Queen's Park Cres W / Hoskin Ave",
+                 "Wellesley St W / Queen's Park Cres", "Queen's Park Cres E / Grosvenor St - SMART", 
+                 "Bay St / Bloor St W (East Side)", "Bay St / Bloor St W (West Side)", "Bay St / Charles St W - SMART",
+                 "St. Joseph St / Bay St - SMART", "Bay St / St. Joseph St", "Bay St / Wellesley St W", 
+                 "Ursula Franklin St / Huron St - SMART", "Ursula Franklin St / St. George St - SMART", "Galbraith Rd / King's College Rd",
+                 "College St / Huron St", "College St / Henry St ", "Queens Park Cres / College St ", "University Ave / College St (East)")
+
+result <- data_frame(station_name = ut_stations, time = as.POSIXct("2025-09-26 04:00:00", format = "%Y-%m-%d %H:%M:%S"))
+
+for (station in ut_stations) {
+  station_data <- subset(start, station_name == station)
+  path <- paste(paste0("models/", gsub("[ /]", "_", station), ".rds"))
+  md <- readRDS(here::here(path))
+  target <- data_frame(
+    hour = 4,
+    day = 26,
+    month = 9,
+    year = 2026
+  )
+  target$predicted <- ceiling(exp(predict(md, newdata = target)))
+  target$station_name <- station
+  target <- target %>% select(-hour,-day,-month,-year)
+  result[result$station_name == station, "prediction"] <- target$predicted
+}
+
+data2024 <- start
+for (station in ut_stations) {
+  date <- "2024-09-26 04:00:00"
+  exists <- nrow(data2024[data2024$station_name == station & data2024$time == date, ]) > 0
+  
+  if (!exists) {
+    new_row <- data.frame(
+      station_name = station,
+      time = date,
+      count = 0
+    )
+    data2024 <- rbind(data2024, new_row)
+  }
+}
+
+data2024 <- data2024[data2024$time == "2024-09-26 04:00:00", ]
+
+names(result)[names(result) == "time"] <- "target_time"
+
+
+data_fi <- merge(data2024, result, by = "station_name")
+
+data_fi$growth <- data_fi$prediction - data_fi$count
+
+# Reshape data to long format
+data_long <- data_fi %>%
+  pivot_longer(cols = c(count, prediction), names_to = "Note", values_to = "value")
+
+# Create the plot
+ggplot(data_long, aes(x = station_name, y = value, fill = Note)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.7), width = 0.7) +
+  geom_text(aes(label = value), 
+            position = position_dodge(width = 0.7), 
+            vjust = -0.5, 
+            size = 3) + 
+  labs(
+    x = "Station Name",
+    y = "Count",
+  ) +
+  scale_fill_manual(
+    values = c("count" = "pink", "prediction" = "skyblue"),
+    labels = c("count" = "Actual count in 2024", "prediction" = "Predicted count in 2025") 
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+
+# Discussion
 
 
 
-<!-- # Results -->
-
-<!-- Our results are summarized in @tbl-modelresults. -->
-
-<!-- ```{r} -->
-<!-- #| echo: false -->
-<!-- #| eval: true -->
-<!-- #| warning: false -->
-<!-- #| message: false -->
-
-<!-- library(rstanarm) -->
-
-<!-- first_model <- -->
-<!--   readRDS(file = here::here("models/first_model.rds")) -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- #| echo: false -->
-<!-- #| eval: true -->
-<!-- #| label: tbl-modelresults -->
-<!-- #| tbl-cap: "Explanatory models of flight time based on wing width and wing length" -->
-<!-- #| warning: false -->
-
-<!-- modelsummary::modelsummary( -->
-<!--   list( -->
-<!--     "First model" = first_model -->
-<!--   ), -->
-<!--   statistic = "mad", -->
-<!--   fmt = 2 -->
-<!-- ) -->
-<!-- ``` -->
+\newpage
 
 
+\appendix
+# Appendix {-}
+
+# Data collection methodology
+## Overview
+Bike Share Toronto is the largest bike-sharing service provider in the Greater Toronto Area, committed to promoting gas-free transportation since its establishment. Starting with 79 stations in 2014, the system has expanded rapidly over the past decade. As of September 2024, the number of stations has grown to 855, capturing the entire bike-sharing market in Toronto [@liu2023bike].
+
+Bike Share Toronto uses its advanced bike-sharing system to automatically collect and manage ride data. Each bike and docking station is equipped with sensors and communication devices to record trip data in detail. This data is transmitted in real time to a central database via a wireless network, used for system monitoring, operational maintenance, and user behavior analysis. To support academic research and urban planning, Bike Share Toronto also anonymizes the data and makes it publicly available. This dataset includes all ride records since the system's inception and is therefore considered a population rather than a sample.
+
+With ongoing system and technological updates, the data collected and published each year varies. Data from 2014-2015 primarily captured hourly usage on weekdays and weekends. Starting in 2016, more detailed data was collected, including trip start and end stations, start and end times, trip duration, trip ID, and user type. From 2017 to 2023, the data was further refined with the addition of unique identifiers for each station (station ID). In 2024, information on bike models was added. The data release cycle also varied across different periods, with some data released quarterly and others monthly. Despite the consistency in the recorded content each year, variable names differ.
+
+## Evaluation
+In evaluating the data collection methods, I focused on accuracy, completeness, consistency, and relevance to ensure the credibility and scientific quality of the research. Below is a detailed assessment of the Bike Share Toronto dataset:
+
+**Accuracy**  
+Bike Share Toronto records ride data in real time through sensors and communication devices, an automated collection method that effectively reduces errors associated with manual recording. Additionally, data is directly stored in a central database and updated in real time, enhancing accuracy. However, sensor devices may be subject to hardware failures or communication interruptions, leading to minor data loss or errors. Although such occurrences are rare, they need to be addressed during data preprocessing.
+
+**Completeness**  
+The dataset covers all ride records since 2014, with data variables expanding as the system and technology improved. This historical and comprehensive nature allows the data to reflect long-term trends in Toronto's bike-sharing system. However, the limited variables in early data (e.g., only hourly usage for 2014-2015) require researchers to be mindful of inconsistencies across years, and early data may need supplementation or transformation to meet research needs.
+
+**Consistency**  
+Although the Bike Share Toronto dataset has expanded annually with new variables, changes in variable names can pose challenges for data analysis. For instance, some variables have been named differently across different years, requiring standardization during data cleaning. Additionally, the variation in data release cycles (quarterly or monthly) could affect the continuity of time series analysis, necessitating data resampling or aggregation to ensure consistency.
+
+**Relevance**  
+The detailed variables in the dataset (such as station ID, ride duration, and user type) provide opportunities for multidimensional analysis, enabling researchers to explore geographic distribution, temporal patterns, and user behavior. Since the dataset represents a population rather than a sample, researchers have greater flexibility in their study focus, ranging from micro-level user behavior to macro-level trend analysis. However, this comprehensiveness also increases the difficulty of data cleaning, such as dealing with redundant data, outliers, and the computational burden of large-scale data processing. Moreover, anonymization protects user privacy, it may limit certain studies focusing on micro-level user behavior.
+
+# Idealized methodology
+In an ideal research methodology, the design of data collection should emphasize comprehensiveness, systematic approach, and relevance, ensuring that the collected data can adequately reflect the multidimensional characteristics of the research subject. Specifically, in addition to core data from the bike-sharing system (such as ride duration, start and end stations, riding time, etc.), external environmental factors should also be considered, including weather conditions (temperature, precipitation, wind speed), holiday information (whether it is a public holiday, behavioral changes before and after holidays), traffic flow (interactions between shared bikes, motor vehicles, and public transportation), and socio-economic factors of the region (income levels, population density, and urbanization degree of different communities). These external variables provide richer contextual information for data analysis, thereby supporting more precise research conclusions.
+
+Moreover, the comprehensiveness of data collection should not only reflect the diversity of variables but also consider continuity in temporal and spatial dimensions. Ideally, the data should cover the full-year operation of all stations in the bike-sharing system, with high-frequency recording (e.g., per minute or second) of trip dynamic data to avoid biases or misinterpretations due to data loss. A unified data format and standardized naming conventions should be adopted to ensure compatibility between different time periods and various data sources, thereby achieving seamless data integration.
+
+To address potential information gaps caused by facility malfunctions, several solutions can be implemented: firstly, multiple data collection devices should be integrated into the system to minimize the impact of a single device failure on overall data integrity. For instance, sensors on bicycles can serve as backups for station records, ensuring that even if one side fails, the other can still provide critical data. Secondly, the central database can be designed to automatically fill in missing data using mechanisms such as utilizing historical data, average values from neighboring stations, or similar time periods, thus reducing the impact of information gaps on the analysis results.
+
+## Ideal Dataset Framework
+A well-designed ideal dataset framework should be comprehensive, flexible, and structured, enabling multidimensional analysis and dynamic scalability. Below is the proposed framework for a bike-sharing system dataset:
+
+**Temporal Dimensions**
+
+- Date: Year/Month/Day, supporting time-series analysis.
+
+- Timestamp: Precise to the second, enabling high-precision analysis.
+
+- Time Period: Categorized into morning peak, evening peak, weekdays/weekends, etc., for behavioral pattern analysis.
+
+**Spatial Dimensions**
+
+- Start Station ID: A unique identifier for the starting station.
+
+- Start Station Name: Readable names for better understanding.
+
+- End Station ID: A unique identifier for the destination station.
+
+- End Station Name: Helps with geographic visualization.
+
+- Latitude/Longitude: Precise coordinates for spatial analysis.
+
+**Trip Information**
+
+- Trip ID: A unique identifier for each trip.
+
+- Trip Duration: Duration of the trip in seconds, indicating the trip length.
+
+- Trip Distance: Distance traveled in meters, providing spatial context.
+
+- Bike ID: A unique identifier for each bike.
+
+**User Information**
+
+- User Type: Differentiates between members and casual users.
+
+- User Age: Estimated age range of the user, supporting demographic analysis.
+
+- User Gender: Categorized as male, female, or other/unspecified.
+
+**Environmental Factors**
+
+- Weather Conditions: Includes temperature, humidity, precipitation, and wind speed.
+
+- Air Quality Index: Provides environmental health metrics.
+
+- Traffic Conditions: Includes road congestion index or traffic volume.
+
+**System Status**
+
+- Available Bikes at Start Station: Number of bikes available at the starting station at trip initiation.
+
+- Available Docks at End Station: Number of free docks at the destination station at trip conclusion.
+
+- Device Status: Indicates whether the equipment (e.g., sensors) is functioning properly.
+
+**Operations and Management**
+
+- Maintenance Records: Includes repair times and reasons for bikes and station facilities.
+
+- Anomalies: Records equipment failures, data abnormalities, etc.
+
+ **Data Quality**
+ 
+- Missing Data Flag: Indicates whether data is missing or contains substituted values.
+
+- Data Source: Records the source or method of data collection (e.g., station sensors, user applications).
+
+@tbl-p1, @tbl-p2, @tbl-p3, @tbl-p4, @tbl-p5, @tbl-p5 show a simulation of proposed ideal dataset.
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+#| label: tbl-p1
+#| tbl-cap: "Simulated Ideal Dataset Part 1"
+
+# Simulation function
+simulate_bike_share_data <- function(n) {
+  data <- data.frame(
+    Date = as.Date(Sys.Date()) - sample(0:30, n, replace = TRUE),
+    Timestamp = format(Sys.time() - runif(n, min = 0, max = 86400), "%Y-%m-%d %H:%M:%S"),
+    Time_Period = sample(c("Morning Peak", "Evening Peak", "Weekday", "Weekend"), n, replace = TRUE),
+    Start_Station_ID = sample(100:200, n, replace = TRUE),
+    Start_Station_Name = paste("Station", sample(100:200, n, replace = TRUE))
+  )
+  return(data)
+}
+
+# Generate data
+bike_share_part1 <- simulate_bike_share_data(5)
+
+# Display first table
+kable(bike_share_part1)
+
+```
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+#| label: tbl-p2
+#| tbl-cap: "Simulated Ideal Dataset Part 2"
+bike_share_part2 <- data.frame(
+  End_Station_ID = sample(100:200, 5, replace = TRUE),
+  End_Station_Name = paste("Station", sample(100:200, 5, replace = TRUE)),
+  Latitude = round(runif(5, 43.6, 43.7), 6),
+  Longitude = round(runif(5, -79.4, -79.3), 6),
+  Trip_ID = paste("TRIP", sample(1000:9999, 5, replace = TRUE), sep = "-")
+)
+
+# Display second table
+kable(bike_share_part2)
+
+```
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+#| label: tbl-p3
+#| tbl-cap: "Simulated Ideal Dataset Part 3"
+bike_share_part3 <- data.frame(
+  Trip_Duration_s = sample(300:3600, 5, replace = TRUE),
+  Trip_Distance_m = sample(500:10000, 5, replace = TRUE),
+  Bike_ID = paste("BIKE", sample(1000:9999, 5, replace = TRUE), sep = "-"),
+  User_Type = sample(c("Member", "Casual"), 5, replace = TRUE),
+  User_Age = sample(18:60, 5, replace = TRUE)
+)
+
+# Display third table
+kable(bike_share_part3)
+
+```
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+#| label: tbl-p4
+#| tbl-cap: "Simulated Ideal Dataset Part 4"
+bike_share_part4 <- data.frame(
+  Weather_Conditions = sample(c("Sunny", "Cloudy", "Rainy"), 5, replace = TRUE),
+  Air_Quality_Index = sample(10:100, 5, replace = TRUE),
+  Traffic_Conditions = sample(c("Low", "Moderate", "High"), 5, replace = TRUE),
+  Available_Bikes_at_Start_Station = sample(0:20, 5, replace = TRUE)
+)
+
+# Display fourth table
+kable(bike_share_part4)
+
+```
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+#| label: tbl-p5
+#| tbl-cap: "Simulated Ideal Dataset Part 5"
+bike_share_part5 <- data.frame(
+  Available_Docks_at_End_Station = sample(0:20, 5, replace = TRUE),
+  Device_Status = sample(c("Operational", "Faulty"), 5, replace = TRUE),
+  Maintenance_Records = sample(c("None", "Minor Repair", "Major Repair"), 5, replace = TRUE)
+)
+
+# Display fifth table
+kable(bike_share_part5)
 
 
-<!-- # Discussion -->
+```
 
-<!-- ## First discussion point {#sec-first-point} -->
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+#| label: tbl-p6
+#| tbl-cap: "Simulated Ideal Dataset Part 6"
+bike_share_part6 <- data.frame(
+  User_Gender = sample(c("Male", "Female", "Other"), 5, replace = TRUE),
+  Anomalies = sample(c("None", "Sensor Error", "Docking Failure"), 5, replace = TRUE),
+  Missing_Data_Flag = sample(c(TRUE, FALSE), 5, replace = TRUE),
+  Data_Source = sample(c("Station Sensor", "Mobile App", "System Log"), 5, replace = TRUE)
+)
 
-<!-- If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this.  -->
-
-<!-- ## Second discussion point -->
-
-<!-- Please don't use these as sub-heading labels - change them to be what your point actually is. -->
-
-<!-- ## Third discussion point -->
-
-<!-- ## Weaknesses and next steps -->
-
-<!-- Weaknesses and next steps should also be included. -->
-
-<!-- \newpage -->
-
-<!-- \appendix -->
-
-<!-- # Appendix {-} -->
+# Display sixth table
+kable(bike_share_part6)
 
 
-<!-- # Additional data details -->
+```
 
-<!-- # Model details {#sec-model-details} -->
-
-<!-- ## Posterior predictive check -->
-
-<!-- In @fig-ppcheckandposteriorvsprior-1 we implement a posterior predictive check. This shows... -->
-
-<!-- In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. This shows...  -->
-
-<!-- ```{r} -->
-<!-- #| eval: true -->
-<!-- #| echo: false -->
-<!-- #| message: false -->
-<!-- #| warning: false -->
-<!-- #| label: fig-ppcheckandposteriorvsprior -->
-<!-- #| layout-ncol: 2 -->
-<!-- #| fig-cap: "Examining how the model fits, and is affected by, the data" -->
-<!-- #| fig-subcap: ["Posterior prediction check", "Comparing the posterior with the prior"] -->
-
-<!-- pp_check(first_model) + -->
-<!--   theme_classic() + -->
-<!--   theme(legend.position = "bottom") -->
-
-<!-- posterior_vs_prior(first_model) + -->
-<!--   theme_minimal() + -->
-<!--   scale_color_brewer(palette = "Set1") + -->
-<!--   theme(legend.position = "bottom") + -->
-<!--   coord_flip() -->
-<!-- ``` -->
-
-<!-- ## Diagnostics -->
-
-<!-- @fig-stanareyouokay-1 is a trace plot. It shows... This suggests... -->
-
-<!-- @fig-stanareyouokay-2 is a Rhat plot. It shows... This suggests... -->
-
-<!-- ```{r} -->
-<!-- #| echo: false -->
-<!-- #| eval: true -->
-<!-- #| message: false -->
-<!-- #| warning: false -->
-<!-- #| label: fig-stanareyouokay -->
-<!-- #| fig-cap: "Checking the convergence of the MCMC algorithm" -->
-<!-- #| fig-subcap: ["Trace plot", "Rhat plot"] -->
-<!-- #| layout-ncol: 2 -->
-
-<!-- plot(first_model, "trace") -->
-
-<!-- plot(first_model, "rhat") -->
-<!-- ``` -->
+\newpage
 
 
-
-<!-- \newpage -->
-
-
-<!-- # References -->
+# References
 
 
