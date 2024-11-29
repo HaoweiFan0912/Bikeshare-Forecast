@@ -6,7 +6,7 @@ This study uses Bayesian Poisson regression to predict the number of usage of bi
 
 
 ## File Structure
-
+**ToBeMoreDetail**
 The repo is structured as:
 
 -   `data/00-simulated_data` contains the simulated datasets.
@@ -19,6 +19,6 @@ The repo is structured as:
 
 
 ## Statement on LLM usage
-
+**ToBeMoreDetail**
 This project involved the guidance of Chat GPT for completing parts of the code, including data simulation, data cleaning, model fitting, and visualization. The complete conversation can be found at the following path: `other/llm_usage`.
 
