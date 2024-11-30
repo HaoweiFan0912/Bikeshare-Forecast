@@ -85,7 +85,7 @@ This study follows the workflow of Telling Stories with Data [@tellingstories], 
 
 **scales**[@scales]: Used for formatting large numbers.
 
-**reshape2**[@reshape]: Used for reshaping data, particularly converting between wide and long formats
+**reshape2**[@reshape]: Used for reshaping redata, particularly converting between wide and long formats
 
 ## Measurement
 To predict the relationship between bike-sharing usage and time within the University of Toronto's St. George campus, this study requires a time series to describe the changes in usage at different stations over time. Therefore, the "Bike Share Toronto Ridership Data" [@bikesharedata], which spans over eight years to date and documents every instance of bike-sharing usage, including the time and location of each ride, is ideal for this study.
