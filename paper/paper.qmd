@@ -279,7 +279,7 @@ ggplot(merged_data, aes(x = station_name, y = count_difference)) +
 # Model {#sec-model}
 In the process of model development, this study utilized R [@citeR] and the following R packages:brms[@brms] and rstanarm[@rstanarm] were used for model construction. bayesplot[@bayesplot], tidyverse[@tidyverse], ggplot2[@ggplot2], knitr[@knitr], and kableExtra[@kableExtra] were used for verifying model assumptions and model validation.
 
-## Model descriptions
+## Model Descriptions
 Equation\ref{eq:poisson} is the model used in this study:
 
 \begin{equation}
@@ -511,7 +511,7 @@ Another potential avenue for future research is extending the study beyond the c
 \appendix
 # Appendix {-}
 
-# Data collection methodology
+# Data Collection Methodology
 ## Overview
 Bike Share Toronto is the largest bike-sharing service provider in the Greater Toronto Area, committed to promoting gas-free transportation since its establishment. Starting with 79 stations in 2014, the system has expanded rapidly over the past decade. As of September 2024, the number of stations has grown to 855, capturing the entire bike-sharing market in Toronto [@liu2023bike].
 
@@ -534,82 +534,51 @@ Although the Bike Share Toronto dataset has expanded annually with new variables
 **Relevance**  
 The detailed variables in the dataset (such as station ID, ride duration, and user type) provide opportunities for multidimensional analysis, enabling researchers to explore geographic distribution, temporal patterns, and user behavior. Since the dataset represents a population rather than a sample, researchers have greater flexibility in their study focus, ranging from micro-level user behavior to macro-level trend analysis. However, this comprehensiveness also increases the difficulty of data cleaning, such as dealing with redundant data, outliers, and the computational burden of large-scale data processing. Moreover, anonymization protects user privacy, it may limit certain studies focusing on micro-level user behavior.
 
-# Idealized methodology
-In an ideal research methodology, the design of data collection should emphasize comprehensiveness, systematic approach, and relevance, ensuring that the collected data can adequately reflect the multidimensional characteristics of the research subject. Specifically, in addition to core data from the bike-sharing system (such as ride duration, start and end stations, riding time, etc.), external environmental factors should also be considered, including weather conditions (temperature, precipitation, wind speed), holiday information (whether it is a public holiday, behavioral changes before and after holidays), traffic flow (interactions between shared bikes, motor vehicles, and public transportation), and socio-economic factors of the region (income levels, population density, and urbanization degree of different communities). These external variables provide richer contextual information for data analysis, thereby supporting more precise research conclusions.
+# Idealized Methodology
 
-Moreover, the comprehensiveness of data collection should not only reflect the diversity of variables but also consider continuity in temporal and spatial dimensions. Ideally, the data should cover the full-year operation of all stations in the bike-sharing system, with high-frequency recording (e.g., per minute or second) of trip dynamic data to avoid biases or misinterpretations due to data loss. A unified data format and standardized naming conventions should be adopted to ensure compatibility between different time periods and various data sources, thereby achieving seamless data integration.
+## Overview
 
-To address potential information gaps caused by facility malfunctions, several solutions can be implemented: firstly, multiple data collection devices should be integrated into the system to minimize the impact of a single device failure on overall data integrity. For instance, sensors on bicycles can serve as backups for station records, ensuring that even if one side fails, the other can still provide critical data. Secondly, the central database can be designed to automatically fill in missing data using mechanisms such as utilizing historical data, average values from neighboring stations, or similar time periods, thus reducing the impact of information gaps on the analysis results.
+This study proposes an ideal data collection approach for bike-sharing systems, emphasizing key aspects like data diversity, reliable data collection, anomaly detection and correction, and ethical considerations.
 
-## Ideal Dataset Framework
-A well-designed ideal dataset framework should be comprehensive, flexible, and structured, enabling multidimensional analysis and dynamic scalability. Below is the proposed framework for a bike-sharing system dataset:
+## Data Diversity
 
-**Temporal Dimensions**
+Diversity in data collection is crucial for enhancing research flexibility and ensuring reliable results. A well-rounded dataset for bike-sharing systems should consider several key aspects:
 
-- Date: Year/Month/Day, supporting time-series analysis.
+First, **data variable diversity** is fundamental. Beyond basic cycling metrics such as frequency, duration, distance, and station information, data should include geographic details (e.g., station latitude, longitude, topographical features), temporal information (e.g., timestamps, weekday or weekend classification, seasonal changes), environmental factors (e.g., weather, air quality, traffic), and socioeconomic indicators (e.g., regional income, population density). These dimensions help capture the range of factors that influence bike-sharing usage, enabling a detailed analysis of user behavior and external influences.
 
-- Timestamp: Precise to the second, enabling high-precision analysis.
+**Spatial and temporal coverage** also play a significant role in data representativeness. Spatially, data should include all bike stations, from central urban to suburban areas, to analyze varying usage patterns. Temporally, data should span several years to support trend analysis and should have high temporal resolution (e.g., minute-level precision) to capture short-term variations.
 
-- Time Period: Categorized into morning peak, evening peak, weekdays/weekends, etc., for behavioral pattern analysis.
+Ensuring **compatibility of data formats and platforms** is critical for effective use of diverse datasets. Collected data should support structured formats (e.g., rental records), unstructured formats (e.g., user feedback), and geospatial information (e.g., GIS formats). Standardized formats like CSV, JSON, or Parquet along with metadata should be used for easy integration across platforms such as GIS systems, machine learning tools, and statistical analysis tools.
 
-**Spatial Dimensions**
+## Reliable Data Collection Processes
 
-- Start Station ID: A unique identifier for the starting station.
+To ensure reliability, bike-sharing data collection should involve a well-structured plan covering multiple aspects.
 
-- Start Station Name: Readable names for better understanding.
+**Automated data collection systems** are essential for improving efficiency and accuracy. IoT-enabled sensors can be installed on bikes and docking stations to automatically record data such as trip start and end times, duration, and station occupancy. GPS and accelerometers on bicycles enable accurate tracking of movement patterns, distance, and speed. Wireless data transmission reduces manual errors and minimizes the risk of data loss during storage or transfer.
 
-- End Station ID: A unique identifier for the destination station.
+Implementing **redundant data collection mechanisms** is crucial for preventing data loss due to sensor malfunctions. Installing multiple sensors on bikes and stations serves as a backup system. For instance, sensors on bikes can complement the data from docking stations. A centralized monitoring system can cross-check data from multiple sources to detect inconsistencies or missing information, thereby improving data integrity and reliability.
 
-- End Station Name: Helps with geographic visualization.
+To enhance data comprehensiveness, integrating **authoritative environmental and traffic data APIs** can be highly beneficial. For example, APIs from OpenWeatherMap or government meteorological services can provide real-time information on weather conditions, air quality, wind speed, and precipitation. Traffic data from relevant authorities can provide insights into road congestion levels. Combining these variables with bike-sharing records can reveal how external conditions affect user behavior, ultimately guiding bike allocation and station optimization.
 
-- Latitude/Longitude: Precise coordinates for spatial analysis.
+## Error Detection and Correction
 
-**Trip Information**
+Error detection and correction are vital for maintaining data quality and ensuring the stability of bike-sharing systems.
 
-- Trip ID: A unique identifier for each trip.
+**Real-time detection algorithms** are the first line of defense against anomalies. Built on rule-based or machine learning techniques, these algorithms can quickly identify outliers. For instance, trip durations outside the typical range (e.g., less than 1 minute or more than 24 hours) should be flagged. Similarly, the number of available bikes at a station should always be between zero and the station's capacity, and any value outside this range should trigger an alert. GPS data should also be verified to confirm that bikes remain within designated operational areas.
 
-- Trip Duration: Duration of the trip in seconds, indicating the trip length.
+**Automated correction mechanisms** are needed to address these anomalies. Three common correction methods include: (1) filling in missing data using historical trends—for example, estimating missing values based on average usage from similar periods; (2) referring to data from nearby stations to estimate missing information; and (3) using contextual data such as weather or traffic to adjust corrections, which ensures the data aligns with real-world scenarios. These methods help maintain accuracy while reducing the impact of missing or incorrect data.
 
-- Trip Distance: Distance traveled in meters, providing spatial context.
+Ensuring **data transparency** is crucial. All corrected records should be labeled with information about the sources, methods, and reasons for modification. This transparency helps maintain data integrity and fosters trust among researchers and system operators.
 
-- Bike ID: A unique identifier for each bike.
+## Ethical Considerations
 
-**User Information**
+Data collection in bike-sharing systems must take ethical considerations into account, particularly with respect to sustainability and user privacy.
 
-- User Type: Differentiates between members and casual users.
+For **sustainable data collection**, it is important to optimize both infrastructure and data management. Solar-powered equipment at docking stations can reduce dependence on traditional power sources by using clean energy for data collection. Dynamic data collection mechanisms that adjust frequency based on demand can help avoid unnecessary energy use. For example, reducing data collection during off-peak hours and increasing it during peak times can help balance operational needs while minimizing resource consumption. Sharing data collection infrastructure with other city services, such as traffic and environmental monitoring, can also reduce redundant investments.
 
-- User Age: Estimated age range of the user, supporting demographic analysis.
+In terms of **user privacy protection**, both technical and management measures are necessary. Anonymization techniques should replace identifiable information with pseudonyms, and differential privacy can be used to add noise to the dataset, preventing re-identification of users. Following the principle of data minimization, only essential data should be collected—for instance, avoiding the collection of detailed home addresses. Clear privacy policies should inform users about data collection, use, and storage, while allowing them to access or delete their personal data. Regular third-party audits can assess privacy measures and identify areas for improvement, building user trust through transparency.
 
-- User Gender: Categorized as male, female, or other/unspecified.
-
-**Environmental Factors**
-
-- Weather Conditions: Includes temperature, humidity, precipitation, and wind speed.
-
-- Air Quality Index: Provides environmental health metrics.
-
-- Traffic Conditions: Includes road congestion index or traffic volume.
-
-**System Status**
-
-- Available Bikes at Start Station: Number of bikes available at the starting station at trip initiation.
-
-- Available Docks at End Station: Number of free docks at the destination station at trip conclusion.
-
-- Device Status: Indicates whether the equipment (e.g., sensors) is functioning properly.
-
-**Operations and Management**
-
-- Maintenance Records: Includes repair times and reasons for bikes and station facilities.
-
-- Anomalies: Records equipment failures, data abnormalities, etc.
-
- **Data Quality**
- 
-- Missing Data Flag: Indicates whether data is missing or contains substituted values.
-
-- Data Source: Records the source or method of data collection (e.g., station sensors, user applications).
-
+## A Proposed Idealized Data Framework
 @tbl-p1, @tbl-p2, @tbl-p3, @tbl-p4, @tbl-p5, @tbl-p5 show a simulation of proposed ideal dataset.
 ```{r}
 #| warning: false
@@ -621,7 +590,6 @@ A well-designed ideal dataset framework should be comprehensive, flexible, and s
 # Simulation function
 simulate_bike_share_data <- function(n) {
   data <- data.frame(
-    Date = as.Date(Sys.Date()) - sample(0:30, n, replace = TRUE),
     Timestamp = format(Sys.time() - runif(n, min = 0, max = 86400), "%Y-%m-%d %H:%M:%S"),
     Time_Period = sample(c("Morning Peak", "Evening Peak", "Weekday", "Weekend"), n, replace = TRUE),
     Start_Station_ID = sample(100:200, n, replace = TRUE),
@@ -667,8 +635,7 @@ bike_share_part3 <- data.frame(
   Trip_Duration_s = sample(300:3600, 5, replace = TRUE),
   Trip_Distance_m = sample(500:10000, 5, replace = TRUE),
   Bike_ID = paste("BIKE", sample(1000:9999, 5, replace = TRUE), sep = "-"),
-  User_Type = sample(c("Member", "Casual"), 5, replace = TRUE),
-  User_Age = sample(18:60, 5, replace = TRUE)
+  User_Type = sample(c("Member", "Casual"), 5, replace = TRUE)
 )
 
 # Display third table
