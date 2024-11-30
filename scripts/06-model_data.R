@@ -7,9 +7,6 @@
 # Pre-requisites: 03-clean_data.R must have been run.
 # Any other information needed? Make sure you are in the `Bikeshare-Forecast.Rproj`.
 
-
-
-
 #### Workspace setup ####
 set.seed(912)
 # List of necessary packages

@@ -23,7 +23,7 @@ bibliography: references.bib
 #### Workspace setup ####
 set.seed(912)
 # List of necessary packages
-packages <- c("tidyverse", "dplyr", "arrow", "ggplot2", "RColorBrewer", "knitr", "bayesplot", "kableExtra")
+packages <- c("tidyverse", "dplyr", "arrow", "ggplot2", "RColorBrewer", "knitr", "bayesplot", "kableExtra", "scales")
 # Install missing packages
 missing_packages <- packages[!(packages %in% installed.packages()[, "Package"])]
 install.packages(missing_packages)
@@ -83,13 +83,14 @@ This study follows the workflow of Telling Stories with Data [@tellingstories], 
 
 **kableExtra**[@kableExtra]: Used for enhancing the presentation of tables, making tables in reports more visually appealing.
 
+**scales**[@scales]: Used for formatting large numbers.
+
 ## Measurement
-	
 To predict the relationship between bike-sharing usage and time within the University of Toronto's St. George campus, this study requires a time series to describe the changes in usage at different stations over time. Therefore, the "Bike Share Toronto Ridership Data" [@bikesharedata], which spans over eight years to date and documents every instance of bike-sharing usage, including the time and location of each ride, is ideal for this study.
 
 This data is particularly ideal for the study also due to its high reliability, which stems from the commercial nature of bike-sharing operations. The advanced bike-sharing system ensures accurate data collection and management by automatically recording ride information. Each bike and docking station is equipped with sensors and communication devices, enabling the capture of detailed trip data.
 
-However, the raw data cannot be used directly in this project; sophisticated data cleaning is required, with specific steps and reasons as follows: First, data from 2015-2016 was excluded because the collection and recording methods for those years differ significantly from later years and do not include the time and station variables required for this study. Next, data for stations located within the University of Toronto's St. George campus was extracted from all remaining samples, and the usage of each station was calculated for every four-hour interval. Finally, the variables of interest were extracted, and the data format was standardized for subsequent analysis. The cleaned data is presented in the format of @tbl-cleaned_data.
+However, the raw data cannot be used directly in this project; sophisticated data cleaning is required, with specific steps and reasons as follows: First, data from 2015–2016 was excluded because the collection and recording methods during those years differed significantly from later periods and did not include the time and station variables necessary for this study. Next, data from stations located within the University of Toronto's St. George campus was extracted from the remaining samples to align with the study's objectives. Then, the variables `time` and `count` were constructed to record the total usage at each station within specific four-hour intervals. Finally, the variables of interest were extracted, and the data format was standardized to ensure compatibility for subsequent analysis. The cleaned data is presented in the format shown in @tbl-cleaned_data.
 
 ```{r}
 #| warning: false
@@ -97,6 +98,8 @@ However, the raw data cannot be used directly in this project; sophisticated dat
 #| echo: false
 #| label: tbl-cleaned_data
 #| tbl-cap: "Samples of the dataset used for analysis"
+
+
 start |>
   tail() |>
   kable(booktabs = TRUE, align = "c")
@@ -105,12 +108,13 @@ start |>
 
 
 ## Variables
-
 This study focuses on the following variables:
 
-- `count`: The dependent variable of the study, a non-negative integer. It describes the total usage of bike-sharing at a particular station during a specific 4-hour interval.
-- `time`: An independent variable representing the time interval. For example, "2024-09-29 12:00:00" represents the time interval from 12 pm to 4 pm on September 29, 2024, in a 24-hour format. The earliest `time` is "2017-01-01 00:00:00," and the latest is "2024-09-30 24:00:00."
+- `count`: The dependent variable of the study, a non-negative integer. It describes the total usage of bike-sharing at a particular station during a specific 4-hour interval. This is a constructed variable derived by calculating the total number of uses at a specific station within a given four-hour interval.
+- `time`: An independent variable representing the time interval. For example, "2024-09-29 12:00:00" represents the time interval from 12 pm to 4 pm on September 29, 2024, in a 24-hour format. The earliest `time` is "2017-01-01 00:00:00," and the latest is "2024-09-30 24:00:00". This is a constructed variable designed to indicate which four-hour interval the exact trip start time, recorded to the second in the raw data, falls into.
 - `station_name`: An independent variable representing the unique name of one of the 27 stations within the University of Toronto's St. George campus.
+
+It is important to note that there may be a relationship between the two independent variables, `time` and `station_name`, as the operating times of different stations might vary. However, this does not affect the validity of the study because the analysis focuses on the usage patterns within the available operational hours for each station, rather than comparing stations with differing start times directly.
 
 @tbl-varibale is the summary of varibales. It is evident that the dataset includes 27 unique station names and spans nearly eight years (from January 1, 2017, to September 30, 2024), providing opportunities to analyze long-term trends and seasonal variations. In the count column, the minimum and median values are both 1, the mean is 2, the first quartile is 1, the third quartile is 3, and the maximum reaches 31, showing a significant right-skewed distribution. This indicates that most of the records have low count values, but there are a few extreme high values.
 ```{r}
@@ -161,7 +165,7 @@ slope <- coef(lm_model)["time"]
 
 ggplot(data = daily_counts, aes(x = time, y = total_count)) +
   geom_point() +
-  labs(x = "Time", y = "Count") +
+  labs(x = "Time", y = "Daily usage") +
   theme_minimal() +
   geom_smooth(method = "lm") +
   annotate("text", x = max(daily_counts$time), y = max(daily_counts$total_count), 
@@ -170,7 +174,7 @@ ggplot(data = daily_counts, aes(x = time, y = total_count)) +
 
 ```
 
-hows the total usage and percentage of shared bicycles during different time intervals in a day from January 1, 2017, to September 30, 2024. It can be observed that the peak usage occurs between 12:00 to 16:00 (28.5%) and 16:00 to 20:00 (31.4%). The usage between 08:00 to 12:00 accounts for 19.9%, while the usage from 20:00 to 00:00 accounts for 13.4%. The time intervals with the lowest usage are 00:00 to 04:00 (3.6%) and 04:00 to 08:00 (3.2%).
+@fig-timely_usage shows the total usage and percentage of shared bicycles during different time intervals in a day from January 1, 2017, to September 30, 2024. It can be observed that the peak usage occurs between 12:00 to 16:00 (28.5%) and 16:00 to 20:00 (31.4%). The usage between 08:00 to 12:00 accounts for 19.9%, while the usage from 20:00 to 00:00 accounts for 13.4%. The time intervals with the lowest usage are 00:00 to 04:00 (3.6%) and 04:00 to 08:00 (3.2%).
 
 ```{r, fig.pos="H"}
 #| label: fig-timely_usage
@@ -178,6 +182,8 @@ hows the total usage and percentage of shared bicycles during different time int
 #| echo: false
 #| message: false
 #| warning: false
+
+
 options(scipen = 999)
 
 start_astime <- start 
@@ -202,11 +208,13 @@ total_counts <- start_astime %>%
 
 ggplot(data = total_counts, aes(x = time_interval, y = count, fill = time_interval)) +
   geom_bar(stat = "identity") +
-  geom_text(aes(label = paste0(round(percentage, 1), "%")), 
-            vjust = -0.5, size = 3) + 
-  labs(x = "Time interval", y = "Count") +
+  geom_text(aes(label = paste0(round(percentage, 1), "%")),
+            vjust = -0.5, size = 3) +
+  labs(x = "Time interval", y = "Total usage") +
+  scale_y_continuous(labels = scales::comma) + 
   theme_minimal() +
   theme(legend.position = "none")
+
 ```
 
 @fig-difference_usage shows the result of the average daily parking volume minus the departure volume at each station. It can be observed that most stations have balanced parking and departure volumes, but some stations show significant supply-demand differences. Specifically, stations such as Bay St / Charles St W – SMART and Bay St / Wellesley St W have noticeably higher departure volumes than parking, while College St / Huron St and College St / Henry St have higher parking volumes than departure, indicating an imbalance in supply and demand at these locations.
@@ -267,18 +275,20 @@ ggplot(merged_data, aes(x = station_name, y = count_difference)) +
 ```
 
 # Model {#sec-model}
+In the process of model development, this study utilized R [@citeR] and the following R packages:brms[@brms] and rstanarm[@rstanarm] were used for model construction. bayesplot[@bayesplot], tidyverse[@tidyverse], ggplot2[@ggplot2], knitr[@knitr], and kableExtra[@kableExtra] were used for verifying model assumptions and model validation.
 
 ## Model descriptions
-The model used in this study is as follows:
+Equation\ref{eq:poisson} is the model used in this study:
 
-\begin{equation*}
+\begin{equation}
 \begin{aligned}
     \text{count} &\sim \text{Poisson}(\lambda) \\
     \log(\lambda) &= \beta_0 + \beta_1 \times \text{hour} + \beta_2 \times \text{day} + \beta_3 \times \text{month} + \beta_4 \times \text{year} \\
     \beta_0 &\sim \mathcal{N}(0, 5) \\
     \beta_j &\sim \mathcal{N}(0, 2) \quad \text{for } j = 1, 2, 3, 4
 \end{aligned}
-\end{equation*}
+\label{eq:poisson}
+\end{equation}
 
 This study employs a Bayesian linear Poisson model to predict the variable `count`, which represents the expected number of bike-sharing usage events at a specific station on the St. George campus of the University of Toronto within a future 4-hour interval. The `count` is assumed to follow a $\text{Poisson}(\lambda)$ distribution, where $\log(\lambda)$ is the logarithmic transformation of the count. This transformation provides a simpler and more stable way to describe the relationship between the `count` and its influencing factors.
 
@@ -298,7 +308,7 @@ This study employs the Poisson model, which assumes that the events under invest
 
 The model was chosen based on the nature of the variable *count*, as this study hypothesizes that a Poisson distribution may better explain its discrete and non-negative characteristics. The selection of predictors is informed by the data structure: *year* is included to capture the overall upward trend over time, *month* and *day* account for seasonal variations, and *hour* reflects daily usage differences. This approach ensures that the model effectively addresses the temporal and seasonal dynamics inherent in the data.
 
-This study considered using the ARIMA (autoregressive integrated moving average) model as an alternative but ultimately decided against it due to its limitations in capturing the specific characteristics of bike-sharing usage data. Bike-sharing usage exhibits significant seasonal patterns, time-of-day effects, and count-based characteristics, while ARIMA models are primarily suited for stationary time series with linear autocorrelations. ARIMA struggles to effectively address non-stationary trends and overdispersion, such as the marked decrease in usage during winter. Although extensions like SARIMA (Seasonal ARIMA) can account for seasonality, they still cannot directly handle the count-based nature of the data. In contrast, Bayesian Poisson regression is specifically designed for count data, allowing for the flexible integration of variables such as year, month, and specific four-hour intervals. Additionally, the Bayesian framework provides posterior distributions, offering deeper insights into parameter uncertainty and variability, which are critical for policy decisions. Therefore, Bayesian Poisson regression is more suitable for this study than the ARMA model.
+This study considered using the ARIMA (autoregressive integrated moving average) model as an alternative but ultimately decided against it due to its limitations in capturing the specific characteristics of bike-sharing usage data. Although the ARIMA model has advantages in time series analysis, allowing for more accurate short-term predictions with parameters that have clearer interpretability. Bike-sharing usage exhibits significant seasonal patterns, time-of-day effects, and count-based characteristics, while ARIMA models are primarily suited for stationary time series with linear autocorrelations. ARIMA struggles to effectively address non-stationary trends and overdispersion, such as the marked decrease in usage during winter. Although extensions like SARIMA (Seasonal ARIMA) can account for seasonality, they still cannot directly handle the count-based nature of the data. In contrast, Bayesian Poisson regression is specifically designed for count data, allowing for the flexible integration of variables such as year, month, and specific four-hour intervals. Additionally, the Bayesian framework provides posterior distributions, offering deeper insights into parameter uncertainty and variability, which are critical for policy decisions. Therefore, Bayesian Poisson regression is more suitable for this study than the ARMA model.
 
 ## Validation
 @fig-PPvsFV is the residual plot. It demonstrates several strengths of the model. First, the residuals are primarily distributed around the zero line, indicating that the model does not exhibit significant systematic bias in its predictions. This suggests that the model is generally effective at capturing the central trends of the data. Second, the residual distribution shows a consistent linear pattern, reflecting the model's stability across different levels of fitted values. This consistency implies that the model performs reliably in its predictions for various ranges of the response variable. Third, the model successfully captures localized patterns in the data, as evidenced by the structured yet controlled behavior of the residuals. 
@@ -343,9 +353,10 @@ ggplot(data, aes(x = fitted(poisson_glm), y = pearson_residuals)) +
 # 5. Posterior Predictive Checks
 pp_check(poisson_glm, plotfun = "dens_overlay", nreps = 100) +
   labs(
-    x = "Count",  
+    x = "Usage",  
     y = "Estimated density"         
-  ) 
+  ) +
+   yaxis_text()
 ```
 The credible intervals shown in @tbl-crediinte highlight several strengths of the model. Key variables such as hour, month, and year have narrow credible intervals that do not include zero, indicating their significant and consistent influence on the response variable. This demonstrates the model’s ability to effectively capture critical trends and relationships in the data, particularly those related to time and seasonal effects. Additionally, the relatively small width of these intervals reflects the stability and reliability of parameter estimates, suggesting that the model is well-calibrated and robust in its predictions. The intercept, while having a broader credible interval, provides a reasonable baseline estimate, reflecting the overall level of the response variable.
 
@@ -367,7 +378,6 @@ credible_intervals_df <- t(credible_intervals)  # Transpose to match the desired
 kable(credible_intervals_df, format = "html", digits = 2, align = "c",
       col.names = c("2.5%", "97.5%"))
 ```
-
 
 # Results{#sec-result}
 This study ultimately predicted the usage volume of 27 shared bicycle stations within the University of Toronto's St. George campus during a 4-hour time window from 4:00 AM to 8:00 AM on September 26, 2025. The prediction was then compared to the usage volume recorded during the same period in 2024. @fig-result shows the results. 
@@ -443,7 +453,7 @@ ggplot(data_long, aes(x = station_name, y = value, fill = Note)) +
             size = 3) + 
   labs(
     x = "Station Name",
-    y = "Count",
+    y = "Usage",
   ) +
   scale_fill_manual(
     values = c("count" = "pink", "prediction" = "skyblue"),
