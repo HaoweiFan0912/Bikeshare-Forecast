@@ -8,8 +8,6 @@
 # Any other information needed? Make sure you are in the `Bikeshare-Forecast.Rproj`.
 
 
-
-
 #### Workspace setup ####
 set.seed(912)
 # List of necessary packages
@@ -106,10 +104,12 @@ for (i in seq_along(data_2024)) {
 # Set the folder path
 folder_path <- "data/01-raw_data"
 # General name cleaning
-file_names <- list.files(path = folder_path, pattern = "*.csv", full.names = TRUE)
+
+file_names <- list.files(path = folder_path, pattern = "*.csv", full.names = TRUE)# This segment of code was completed with the assistance of ChatGPT-4.
 # Define the patterns to be removed from file names
 patterns_to_remove <- c("Bike", "Share", "Ridership", "Toronto", "bike", "share", "ridership", "toronto", " ", "\\(", "\\)")
 # Iterate through all files and modify the file names
+
 for (file in file_names) {
   old_name <- basename(file)
   new_name <- old_name
@@ -118,10 +118,11 @@ for (file in file_names) {
   }
   new_file_path <- file.path(folder_path, new_name)
   file.rename(file, new_file_path)
-}
+}# This segment of code was completed with the assistance of ChatGPT-4.
 # Rename the 2017 data files
 files_2017 <- list.files(path = folder_path, pattern = "2017", full.names = TRUE)
 # Loop through each file and rename it
+
 for (file in files_2017) {
   file_name <- basename(file)  
   new_name <- gsub("2017Q(\\d+)", "2017-Q\\1", file_name)  # Change '2017Qx' to '2017-Qx' format
@@ -129,9 +130,10 @@ for (file in files_2017) {
   if (file != new_path) {  # Ensure the new and old paths are different
     file.rename(file, new_path)  # Rename the file
   }
-}
+}# This segment of code was completed with the assistance of ChatGPT-4.
 # Rename the 2018 data files
-files_2018 <- list.files(path = folder_path, pattern = "2018", full.names = TRUE)
+
+files_2018 <- list.files(path = folder_path, pattern = "2018", full.names = TRUE)# This segment of code was completed with the assistance of ChatGPT-4.
 # Loop through each file and rename it
 for (file in files_2018) {
   file_name <- basename(file)  

@@ -6,6 +6,8 @@
 # License: Open Government License - Toronto
 # Pre-requisites: Scripts with prefixes 00-04 must have been run.
 # Any other information needed? Make sure you are in the `Bikeshare-Forecast.Rproj`.
+# The code was completed under the guidance of ChatGPT-4, and the detailed interaction process can be found in the path：`other/llm_usage/`
+
 
 #### Workspace setup ####
 set.seed(912)

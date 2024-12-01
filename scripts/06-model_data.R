@@ -58,7 +58,7 @@ for (station in ut_stations) {
     model_formula <- count ~ hour + day + month
   } else {
     model_formula <- count ~ hour + day + month + year
-  }
+  }# This segment of code was completed with the assistance of ChatGPT-4.
   
   # Fit Bayesian regression model
   model <- stan_glm(
@@ -68,7 +68,7 @@ for (station in ut_stations) {
     prior = normal(0, 2),
     prior_intercept = normal(0, 5),
     chains = 4, iter = 2000
-  )
+  )# This segment of code was completed with the assistance of ChatGPT-4.
   
   # Save model
   saveRDS(model, file = paste0("models/", gsub("[ /]", "_", station), ".rds"))

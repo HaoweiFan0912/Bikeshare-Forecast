@@ -25,7 +25,7 @@ lapply(packages, library, character.only = TRUE)
 folder_path <- "data/01-raw_data"
 # Get the list of all CSV files in the folder
 csv_path <- list.files(path = folder_path, pattern = "\\.csv$", full.names = TRUE)
-csv_list <- lapply(csv_path, read.csv)
+csv_list <- lapply(csv_path, read.csv) # This segment of code was completed with the assistance of ChatGPT-4.
 # Clean up column names and remove unnecessary columns.
 for (i in seq_along(csv_list)) {
   file <- csv_list[[i]]
@@ -49,12 +49,13 @@ for (i in seq_along(csv_list)) {
   }
   file <- file %>% select(trip_id, trip_start_time, from_station_name, trip_stop_time, to_station_name)
   csv_list[[i]] <- file
-}
+}# This segment of code was completed with the assistance of ChatGPT-4.
 
 # Create a new dataframe that combines all files
-df_combined <- do.call(rbind, csv_list)
+df_combined <- do.call(rbind, csv_list)# This segment of code was completed with the assistance of ChatGPT-4.
 
 # Standardize the date format
+# This segment of code was completed with the assistance of ChatGPT-4.
 pattern <- "^\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2}$"
 df_combined$trip_start_time <- gsub("^(\\d{2})/(\\d{2})/(\\d{2}) (\\d{2}):(\\d{2}):\\d{2}$", "\\1/\\2/20\\3 \\4:\\5", df_combined$trip_start_time)
 df_combined$trip_start_time <- gsub("^(\\d{1})/(\\d{1,2}/\\d{4} \\d{1,2}:\\d{1,2})$", "0\\1/\\2", df_combined$trip_start_time)
@@ -104,6 +105,7 @@ df_combined_start$trip_start_time <- mdy_hm(df_combined_start$trip_start_time)
 df_combined_stop$trip_stop_time <- mdy_hm(df_combined_stop$trip_stop_time)
 
 # Create a new column for the time interval (every 4 hours)
+# This segment of code was completed with the assistance of ChatGPT-4.
 df_combined_start <- df_combined_start %>%
   mutate(interval = floor_date(trip_start_time, "4 hours"))
 df_combined_stop <- df_combined_stop %>%

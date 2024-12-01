@@ -6,7 +6,7 @@
 # License: Open Government License - Toronto
 # Pre-requisites: 00-simulate_data.R must have been run.
 # Any other information needed? Make sure you are in the `Bikeshare-Forecast.Rproj`.
-
+# The code was completed under the guidance of ChatGPT-4, and the detailed interaction process can be found in the path：`other/llm_usage/`
 
 
 
