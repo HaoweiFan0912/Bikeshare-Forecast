@@ -9,9 +9,9 @@ This study uses Bayesian Poisson regression to predict the number of usage of bi
 The repository is organized as follows:
 
 - **`data`**: Contains all datasets used in this project.  
-  - **`data/00-simulated_data`**: Stores the simulated datasets.  
-  - **`data/01-raw_data`**: Includes the raw data obtained from [Bike Share Toronto Ridership Data](https://open.toronto.ca/dataset/bike-share-toronto-ridership-data/).  
-  - **`data/02-analysis_data`**: Contains the cleaned datasets constructed for analysis.  
+  - **`00-simulated_data`**: Stores the simulated datasets.  
+  - **`01-raw_data`**: Includes the raw data obtained from [Bike Share Toronto Ridership Data](https://open.toronto.ca/dataset/bike-share-toronto-ridership-data/).  
+  - **`02-analysis_data`**: Contains the cleaned datasets constructed for analysis.  
 
 - **`model`**: Contains the fitted models.  
 
