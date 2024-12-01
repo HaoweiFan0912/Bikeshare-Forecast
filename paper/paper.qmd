@@ -222,7 +222,11 @@ ggplot(data = total_counts, aes(x = time_interval, y = count, fill = time_interv
   labs(x = "Time interval", y = "Total usage") +
   scale_y_continuous(labels = scales::comma) + 
   theme_minimal() +
-  theme(legend.position = "none")
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(angle = 10, hjust = 1)
+  )
+
 
 ```
 
