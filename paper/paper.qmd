@@ -395,7 +395,7 @@ This study ultimately predicted the usage volume of 27 shared bicycle stations w
 
 ```{r, fig.pos="H", fig.width=8, fig.height=6}
 #| label: fig-result
-#| fig-cap: "The actual count from 4:00 AM to 8:00 AM on September 26, 2024 vs the predicted count for the same time interval in 2025."
+#| fig-cap: "The actual usage from 4:00 AM to 8:00 AM on September 26, 2024 vs the predicted usage for the same time interval in 2025."
 #| echo: false
 #| message: false
 #| warning: false
@@ -475,7 +475,7 @@ ggplot(data_long, aes(x = station_name, y = value, fill = Note)) +
   ) +
   scale_fill_manual(
     values = c("count" = "pink", "prediction" = "skyblue"),
-    labels = c("count" = "Actual count in 2024", "prediction" = "Predicted count in 2025") 
+    labels = c("count" = "Actual usage in 2024", "prediction" = "Predicted usage in 2025") 
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
