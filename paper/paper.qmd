@@ -38,7 +38,7 @@ stop <- read_parquet(here::here("data/02-analysis_data/stop.parquet"))
 # Introduction
 
 ## Overview
-Bike-sharing services have experienced rapid growth in the Toronto region, with ridership rising dramatically from approximately 665,000 trips in 2015 to over 4.5 million in 2022, according to a study by the University of Toronto's School of Cities[@liu2023bike]. This rapid increase highlights the critical need for data-driven analyses to optimize bike-sharing systems and guide policy decisions that can further enhance urban mobility[@xiamen]. While city-wide studies provide valuable suggestions, research from Hangzhou, China, has demonstrated that bike-sharing usage patterns can vary significantly between urban areas and university campuses[@hangzhou]. These differences suggest that general urban studies conducted in the Toronto region may not fully capture the unique dynamics of campus-based bike-sharing systems. Therefore, to address this gap in the literature, this study focuses on the University of Toronto St. George Campus as a case study, analyzing bike-sharing usage within the campus in Toronto to provide a nuanced understanding of its role in campus mobility and inform policies tailored to similar settings.
+Bike-sharing services have experienced growth in the Toronto region, with ridership rising dramatically from approximately 665,000 trips in 2015 to over 4.5 million in 2022, according to a study by the University of Toronto's School of Cities[@liu2023bike]. This increase highlights the need for analyses to optimize bike-sharing systems and guide policy decisions that can further enhance urban mobility[@xiamen]. While city-wide studies provide suggestions, research from Hangzhou, China, has demonstrated that bike-sharing usage patterns can vary significantly between urban areas and university campuses[@hangzhou]. These differences suggest that general urban studies conducted in the Toronto region may not fully capture the unique dynamics of campus-based bike-sharing systems. Therefore, to address this unexplored areas in the literature, this study focuses on the University of Toronto St. George Campus as a case study, analyzing bike-sharing usage within the campus in Toronto to provide a detailed understanding of its role in campus mobility and inform policies tailored to similar settings.
 
 The estimand of this study aims to predict the usage of a specific bike-sharing station on the University of Toronto campus during a particular 4-hour interval. By transforming time into components such as year, month, day, and the specific 4-hour interval of the day, the analysis incorporates overall trends, seasonal effects, and hourly variations in station usage. The primary objective is to investigate temporal changes in the usage of 27 bike-sharing stations on campus, thereby providing policymakers with recommendations for optimizing bike allocation to enhance commuting efficiency. To achieve this estimand, the study extracts a sample of 27 bike-sharing stations within the University of Toronto campus from all bike-sharing usage data recorded between January 1, 2017, and September 30, 2024. A Bayesian Poisson regression model is then employed to predict station usage based on factors such as station location, year, month, day, and the specific 4-hour interval of the day.
 
@@ -90,7 +90,7 @@ This study follows the workflow of Telling Stories with Data [@tellingstories], 
 ## Measurement
 To predict the relationship between bike-sharing usage and time within the University of Toronto's St. George campus, this study requires a time series to describe the changes in usage at different stations over time. Therefore, the "Bike Share Toronto Ridership Data" [@bikesharedata], which spans over eight years to date and documents every instance of bike-sharing usage, including the time and location of each ride, is ideal for this study.
 
-This data is particularly ideal for the study also due to its high reliability, which stems from the commercial nature of bike-sharing operations. The advanced bike-sharing system ensures accurate data collection and management by automatically recording ride information. Each bike and docking station is equipped with sensors and communication devices, enabling the capture of detailed trip data.
+This data is particularly ideal for the study also due to its high reliability, which stems from the commercial nature of bike-sharing operations. The bike-sharing system ensures accurate data collection and management by automatically recording ride information. Each bike and docking station is equipped with sensors and communication devices, enabling the capture of detailed trip data.
 
 However, the raw data cannot be used directly in this project; sophisticated data cleaning is required, with specific steps and reasons as follows: First, data from 2015–2016 was excluded because the collection and recording methods during those years differed significantly from later periods and did not include the time and station variables necessary for this study. Next, data from stations located within the University of Toronto's St. George campus was extracted from the remaining samples to align with the study's objectives. Then, the variables `time` and `count` were constructed to record the total usage at each station within specific four-hour intervals. Finally, the variables of interest were extracted, and the data format was standardized to ensure compatibility for subsequent analysis. The cleaned data is presented in the format shown in @tbl-cleaned_data.
 
@@ -101,7 +101,7 @@ However, the raw data cannot be used directly in this project; sophisticated dat
 #| label: tbl-cleaned_data
 #| tbl-cap: "Samples of the dataset used for analysis"
 
-
+#Display the dataset.
 start |>
   tail() |>
   kable(booktabs = TRUE, align = "c")
@@ -125,6 +125,8 @@ It is important to note that there may be a relationship between the two indepen
 #| echo: false
 #| label: tbl-varibale
 #| tbl-cap: "Variables' summary"
+
+#Calculate the summary of each variable.
 count_min <- min(start$count)
 count_1st_qu <- quantile(start$count, 0.25)
 count_median <- median(start$count)
@@ -154,15 +156,17 @@ kable(summ)
 #| message: false
 #| warning: false
 
+# Generate a copy of the data.
 start_asdate <- start 
 start_asdate$time <- as.Date(start_asdate$time)
+
+# Calculate the total count for each day.
 daily_counts <- start_asdate %>%
   group_by(time) %>%
   summarise(total_count = sum(count))
 
+#Calculate the slope.
 lm_model <- lm(total_count ~ time, data = daily_counts)
-
-
 slope <- coef(lm_model)["time"]
 
 ggplot(data = daily_counts, aes(x = time, y = total_count)) +
@@ -188,10 +192,11 @@ ggplot(data = daily_counts, aes(x = time, y = total_count)) +
 
 options(scipen = 999)
 
+# Generate a copy of the data.
 start_astime <- start 
 start_astime$time <- as.POSIXct(start_astime$time)
 
-
+# Calculate the total count for each time period.
 start_astime <- start_astime %>%
   mutate(time_interval = case_when(
     hour(time) >= 0 & hour(time) < 4 ~ "00:00 - 04:00",
@@ -202,7 +207,7 @@ start_astime <- start_astime %>%
     hour(time) >= 20 & hour(time) < 24 ~ "20:00 - 00:00"
   ))
 
-
+#Calculate the proportion.
 total_counts <- start_astime %>%
   group_by(time_interval) %>%
   summarise(count = sum(count, na.rm = TRUE)) %>%
@@ -248,11 +253,10 @@ stop_1day1 <- stop_1day %>%
   summarise(total_count = sum(count), .groups = "drop") %>%
   ungroup()
 
-
+# Calculate the daily average.
 average_counts_start <- start_1day1 %>%
   group_by(station_name) %>%
   summarize(average_count = mean(total_count, na.rm = TRUE))
-
 average_counts_stop <- stop_1day1 %>%
   group_by(station_name) %>%
   summarize(average_count = mean(total_count, na.rm = TRUE))
@@ -260,6 +264,7 @@ average_counts_stop <- stop_1day1 %>%
 merged_data <- merge(average_counts_start, average_counts_stop, by.x = "station_name", by.y = "station_name", all = TRUE)
 
 
+# Handle non-positive integer mean.
 merged_data <- merged_data %>%
   mutate(count_difference = ifelse((average_count.y - average_count.x) >= 0, 
                                    ceiling(average_count.y - average_count.x), 
@@ -310,7 +315,9 @@ This study employs the Poisson model, which assumes that the events under invest
 
 The model was chosen based on the nature of the variable *count*, as this study hypothesizes that a Poisson distribution may better explain its discrete and non-negative characteristics. The selection of predictors is informed by the data structure: *year* is included to capture the overall upward trend over time, *month* and *day* account for seasonal variations, and *hour* reflects daily usage differences. This approach ensures that the model effectively addresses the temporal and seasonal dynamics inherent in the data.
 
-This study considered using the ARIMA (autoregressive integrated moving average) model as an alternative but ultimately decided against it due to its limitations in capturing the specific characteristics of bike-sharing usage data. Although the ARIMA model has advantages in time series analysis, allowing for more accurate short-term predictions with parameters that have clearer interpretability. Bike-sharing usage exhibits significant seasonal patterns, time-of-day effects, and count-based characteristics, while ARIMA models are primarily suited for stationary time series with linear autocorrelations. ARIMA struggles to effectively address non-stationary trends and overdispersion, such as the marked decrease in usage during winter. Although extensions like SARIMA (Seasonal ARIMA) can account for seasonality, they still cannot directly handle the count-based nature of the data. In contrast, Bayesian Poisson regression is specifically designed for count data, allowing for the flexible integration of variables such as year, month, and specific four-hour intervals. Additionally, the Bayesian framework provides posterior distributions, offering deeper insights into parameter uncertainty and variability, which are critical for policy decisions. Therefore, Bayesian Poisson regression is more suitable for this study than the ARMA model.
+This study considered using the ARIMA (autoregressive integrated moving average) model as an alternative but ultimately decided against it due to its limitations in capturing the specific characteristics of bike-sharing usage data. Although the ARIMA model has advantages in time series analysis, allowing for more accurate short-term predictions with parameters that have clearer interpretability. Bike-sharing usage exhibits significant seasonal patterns, time-of-day effects, and count-based characteristics, while ARIMA models are primarily suited for stationary time series with linear autocorrelations. ARIMA struggles to effectively address non-stationary trends and overdispersion, such as the marked decrease in usage during winter. Although extensions like SARIMA (Seasonal ARIMA) can account for seasonality, they still cannot directly handle the count-based nature of the data. In contrast, Bayesian Poisson regression is specifically designed for count data, allowing for the flexible integration of variables such as year, month, and specific four-hour intervals. Additionally, the Bayesian framework provides posterior distributions, offering deeper 
+ideas into parameter uncertainty and variability, which are 
+important for policy decisions. Therefore, Bayesian Poisson regression is more suitable for this study than the ARMA model.
 
 ## Validation
 @fig-PPvsFV is the residual plot. It demonstrates several strengths of the model. First, the residuals are primarily distributed around the zero line, indicating that the model does not exhibit significant systematic bias in its predictions. This suggests that the model is generally effective at capturing the central trends of the data. Second, the residual distribution shows a consistent linear pattern, reflecting the model's stability across different levels of fitted values. This consistency implies that the model performs reliably in its predictions for various ranges of the response variable. Third, the model successfully captures localized patterns in the data, as evidenced by the structured yet controlled behavior of the residuals. 
@@ -352,7 +359,7 @@ ggplot(data, aes(x = fitted(poisson_glm), y = pearson_residuals)) +
 #| echo: false
 #| message: false
 #| warning: false
-# 5. Posterior Predictive Checks
+# Posterior Predictive Checks
 pp_check(poisson_glm, plotfun = "dens_overlay", nreps = 100) +
   labs(
     x = "Usage",  
@@ -360,7 +367,7 @@ pp_check(poisson_glm, plotfun = "dens_overlay", nreps = 100) +
   ) +
    yaxis_text()
 ```
-The credible intervals shown in @tbl-crediinte highlight several strengths of the model. Key variables such as hour, month, and year have narrow credible intervals that do not include zero, indicating their significant and consistent influence on the response variable. This demonstrates the model’s ability to effectively capture critical trends and relationships in the data, particularly those related to time and seasonal effects. Additionally, the relatively small width of these intervals reflects the stability and reliability of parameter estimates, suggesting that the model is well-calibrated and robust in its predictions. The intercept, while having a broader credible interval, provides a reasonable baseline estimate, reflecting the overall level of the response variable.
+The credible intervals shown in @tbl-crediinte highlight several strengths of the model. Key variables such as hour, month, and year have narrow credible intervals that do not include zero, indicating their significant and consistent influence on the response variable. This demonstrates the model’s ability to effectively capture important trends and relationships in the data, particularly those related to time and seasonal effects. Additionally, the relatively small width of these intervals reflects the stability and reliability of parameter estimates, suggesting that the model is well-calibrated and robust in its predictions. The intercept, while having a broader credible interval, provides a reasonable baseline estimate, reflecting the overall level of the response variable.
 
 ```{r}
 #| warning: false
@@ -390,6 +397,8 @@ This study ultimately predicted the usage volume of 27 shared bicycle stations w
 #| echo: false
 #| message: false
 #| warning: false
+
+# Target stations
 ut_stations <- c("Madison Ave / Bloor St W", "Bloor St W / Huron St", "St. George St / Bloor St W", 
                  "Sussex Ave / St George St", "Spadina Ave / Sussex Ave", "Spadina Ave / Harbord St - SMART",
                  "St. George St / Hoskin Ave", "Spadina Ave / Willcocks St", "St. George St / Willcocks St",
@@ -402,6 +411,7 @@ ut_stations <- c("Madison Ave / Bloor St W", "Bloor St W / Huron St", "St. Georg
 
 result <- data_frame(station_name = ut_stations, time = as.POSIXct("2025-09-26 04:00:00", format = "%Y-%m-%d %H:%M:%S"))
 
+# Iterate through all models.
 for (station in ut_stations) {
   station_data <- subset(start, station_name == station)
   path <- paste(paste0("models/", gsub("[ /]", "_", station), ".rds"))
@@ -419,6 +429,8 @@ for (station in ut_stations) {
 }
 
 data2024 <- start
+
+# Find predictions.
 for (station in ut_stations) {
   date <- "2024-09-26 04:00:00"
   exists <- nrow(data2024[data2024$station_name == station & data2024$time == date, ]) > 0
@@ -435,11 +447,13 @@ for (station in ut_stations) {
 
 data2024 <- data2024[data2024$time == "2024-09-26 04:00:00", ]
 
+# Rename
 names(result)[names(result) == "time"] <- "target_time"
 
-
+# New dataset for ploting.
 data_fi <- merge(data2024, result, by = "station_name")
 
+# Calculate predicted growth
 data_fi$growth <- data_fi$prediction - data_fi$count
 
 # Reshape data to long format
@@ -471,15 +485,15 @@ The prediction indicates an average increase of 2 uses per station across the 27
 
 ## Optimization Suggestions for Campus Bike-Sharing Systems
 
-This study identifies significant patterns in the use of bike-sharing systems on the University of Toronto’s St. George campus, including temporal, seasonal, and annual trends. The findings reveal that 79.8% of bike usage occurs between 8 AM and 8 PM, while demand between midnight and 8 AM is minimal. This highlights the strong alignment between bike usage and users’ daily routines. To improve commuting efficiency, it is recommended that the university collaborates with the bike-sharing provider to increase bike availability during peak hours (e.g., before and after class times) and optimize station layouts, particularly in high-demand areas such as dormitories, academic buildings, and transit hubs. During low-demand hours (e.g., early morning), maintenance and redistribution efforts can be scheduled to ensure the availability of bikes during peak periods.
+This study identifies significant patterns in the use of bike-sharing systems on the University of Toronto’s St. George campus, including temporal, seasonal, and annual trends. The findings shows that 79.8% of bike usage occurs between 8 AM and 8 PM, while demand between midnight and 8 AM is minimal. This highlights the strong alignment between bike usage and users’ daily routines. To improve commuting efficiency, it is recommended that the university collaborates with the bike-sharing provider to increase bike availability during peak hours (e.g., before and after class times) and optimize station layouts, particularly in high-demand areas such as dormitories, academic buildings, and transit hubs. During low-demand hours (e.g., early morning), maintenance and redistribution efforts can be scheduled to ensure the availability of bikes during peak periods.
 
-Seasonal data also show that bike usage significantly decreases during winter, approaching zero, while increasing steadily during spring and summer, peaking in August and September during the start of the academic year. This suggests the need for proactive and dynamic adjustments in bike supply. During the start of the academic year, expanding station capacity and offering user-friendly navigation services can help new and returning students quickly familiarize themselves with the system. In winter, efforts should focus on improving station infrastructure (e.g., anti-freeze facilities) and maintaining safety under cold conditions. Additionally, by leveraging predictive analytics to forecast station-specific demand fluctuations, resources can be optimized in advance, minimizing inconveniences caused by bike shortages or overcrowded parking during peak times.
+Seasonal data also show that bike usage significantly decreases during winter, approaching zero, while increasing steadily during spring and summer, peaking in August and September during the start of the academic year. This suggests the need for proactive and dynamic adjustments in bike supply. During the start of the academic year, expanding station capacity and offering user-friendly navigation services can help new and returning students quickly familiarize themselves with the system. In winter, efforts should focus on improving station infrastructure (e.g., anti-freeze facilities) and maintaining safety under cold conditions. Additionally, by utilizing predictive analytics to forecast station-specific demand fluctuations, resources can be optimized in advance, minimizing inconveniences caused by bike shortages or overcrowded parking during peak times.
 
-## This Study Provides a Research Methodology for Shared Bikes in Semi-Closed Areas
+## A New Research Methodology for Shared Bikes in Semi-Closed Areas
 
 This study provides actionable recommendations for improving user experience in semi-closed environments like university campuses. Unlike urban open systems, bike usage in campuses is strongly influenced by fixed schedules such as class timings and campus events. This approach can be further extended to other similar semi-closed areas, such as industrial parks, manufacturing facilities, and residential complexes, where movement patterns are often dictated by predictable schedules, shifts, or local routines.
 
-In these environments, bike-sharing systems can be optimized to align with peak demand periods, such as shift changes in factories, scheduled breaks in office parks, or recreational times in residential areas. By leveraging predictive analytics and data-driven insights, administrators can strategically allocate bikes and docking stations to match demand patterns, ensuring users have access when and where they need it most.
+In these environments, bike-sharing systems can be optimized to align with peak demand periods, such as shift changes in factories, scheduled breaks in office parks, or recreational times in residential areas. By leveraging predictive analytics administrators can strategically allocate bikes and docking stations to match demand patterns, ensuring users have access when and where they need it most.
 
 Moreover, this methodology is cost-effective. By targeting specific time windows and locations with higher demand, resources can be distributed more efficiently, reducing waste and operational costs. This reduces the need for large-scale deployment of bikes and infrastructure, which is often necessary in open urban systems. Instead, investments can be focused on key high-demand areas within these semi-closed environments, maximizing return on investment while enhancing user satisfaction.
 
@@ -487,20 +501,20 @@ Moreover, this methodology is cost-effective. By targeting specific time windows
 ## Limitations
 This study employs a Bayesian Poisson regression model, which, while advantageous for handling count data, has significant limitations due to its assumptions. The Poisson model assumes that bike usage events are independent of one another, ignoring interactions among user behaviors, such as multiple users arriving at a station simultaneously during peak hours. Additionally, the model presumes a constant usage rate within each time period, which fails to capture dynamic fluctuations in reality, such as those caused by weather changes or campus events.
 
-The study only considers temporal variables (e.g., year, month, day, and hour) and excludes other critical external factors, significantly limiting the accuracy of its predictions. Weather conditions, for instance, have a substantial impact on bike usage; rainy, snowy, or extremely hot or cold days see a marked decline in usage frequency. Moreover, special events on campus and holidays directly affect bike demand. Neglecting these external factors prevents the model from accurately capturing fluctuations in actual demand.
+The study only considers temporal variables (e.g., year, month, day, and hour) and excludes other important external factors, significantly limiting the accuracy of its predictions. Weather conditions, for instance, have a substantial impact on bike usage; rainy, snowy, or extremely hot or cold days see a marked decline in usage frequency. Moreover, special events on campus and holidays directly affect bike demand. Neglecting these external factors prevents the model from accurately capturing fluctuations in actual demand.
 
-The handling of temporal variables in the model is relatively simplistic, overlooking potential complex interactions among these variables, which restricts the predictive performance. Poisson regression struggles to adequately address the high concentration of demand during peak periods, potentially underestimating peak usage. Consequently, more sophisticated and flexible models, such as random forests or deep learning approaches, may be better suited to capturing these intricate relationships and improving prediction accuracy.
+The handling of temporal variables in the model is relatively simplistic, overlooking potential complex interactions among these variables, which restricts the predictive performance. Poisson regression struggles to adequately address the high concentration of demand during peak periods, potentially underestimating peak usage. Consequently, more sophisticated and flexible models, such as random forests or deep learning approaches, may be better suited to capturing these complicated relationships and improving prediction accuracy.
 
 The study also falls short in validating the model's generalization capability. Although residual analysis and posterior predictive checks were used to evaluate model fit, there was no assessment of the model's predictive performance on unseen data, such as cross-validation or evaluation in different scenarios. Broader validation would enhance the model's robustness and reliability in practical applications.
 
 Additionally, choices made during the data cleaning process may affect the accuracy of the study's results. Excluding data from 2015–2016 improved data consistency but may have overlooked long-term trends in the evolution of the bike-sharing system. Furthermore, the way outliers and missing values were handled during data cleaning could significantly influence the model's outcomes. A lack of systematic and precise data standardization could lead to inconsistent model performance across data from different years, thereby affecting the reliability and accuracy of the predictions.
 
 ## Suggestions for Future Research
-While this study successfully predicts bike-sharing usage at the University of Toronto's St. George campus, several areas warrant further exploration to enhance the reliability and applicability of the results.
+While this study successfully predicts bike-sharing usage at the University of Toronto's St. George campus, several areas warrant further research to enhance the reliability and applicability of the results.
 
-First, expanding the dataset to include additional environmental variables could provide deeper insights. Incorporating factors such as weather conditions, traffic congestion data, and socioeconomic variables could improve the model's accuracy, especially for predicting daily or hourly usage variations. Future studies could also include other campus transportation modes to enable a more comprehensive analysis of mobility patterns within the campus.
+First, expanding the dataset to include additional environmental variables could provide deeper understandings. Incorporating factors such as weather conditions, traffic congestion data, and socioeconomic variables could improve the model's accuracy, especially for predicting daily or hourly usage variations. Future studies could also include other campus transportation modes to enable a more detailed analysis of mobility patterns within the campus.
 
-Additionally, this research is limited to employing Bayesian Poisson regression. Exploring more advanced machine learning methods, such as random forests or neural networks, could improve prediction accuracy by capturing the nonlinear relationships among factors influencing bike-sharing usage.
+Additionally, this research is limited to employing Bayesian Poisson regression. Exploring more machine learning methods, such as random forests or neural networks, could improve prediction accuracy by capturing the nonlinear relationships among factors influencing bike-sharing usage.
 
 Another potential avenue for future research is extending the study beyond the campus. Comparing usage patterns across multiple university campuses could uncover broader trends and differences in bike-sharing demand. Such comparative analyses would help researchers and policymakers determine whether the usage patterns observed at the University of Toronto are unique or represent generalizable phenomena across other campuses.
 
@@ -513,9 +527,9 @@ Another potential avenue for future research is extending the study beyond the c
 
 # Data Collection Methodology
 ## Overview
-Bike Share Toronto is the largest bike-sharing service provider in the Greater Toronto Area, committed to promoting gas-free transportation since its establishment. Starting with 79 stations in 2014, the system has expanded rapidly over the past decade. As of September 2024, the number of stations has grown to 855, capturing the entire bike-sharing market in Toronto [@liu2023bike].
+Bike Share Toronto is the largest bike-sharing service provider in the Greater Toronto Area, committed to promoting gas-free transportation since its establishment. Starting with 79 stations in 2014, the system has expanded over the past decade. As of September 2024, the number of stations has grown to 855, capturing the entire bike-sharing market in Toronto [@liu2023bike].
 
-Bike Share Toronto uses its advanced bike-sharing system to automatically collect and manage ride data. Each bike and docking station is equipped with sensors and communication devices to record trip data in detail. This data is transmitted in real time to a central database via a wireless network, used for system monitoring, operational maintenance, and user behavior analysis. To support academic research and urban planning, Bike Share Toronto also anonymizes the data and makes it publicly available. This dataset includes all ride records since the system's inception and is therefore considered a population rather than a sample.
+Bike Share Toronto uses its bike-sharing system to automatically collect and manage ride data. Each bike and docking station is equipped with sensors and communication devices to record trip data in detail. This data is transmitted in real time to a central database via a wireless network, used for system monitoring, operational maintenance, and user behavior analysis. To support academic research and urban planning, Bike Share Toronto also anonymizes the data and makes it publicly available. This dataset includes all ride records since the system's inception and is therefore considered a population rather than a sample.
 
 With ongoing system and technological updates, the data collected and published each year varies. Data from 2014-2015 primarily captured hourly usage on weekdays and weekends. Starting in 2016, more detailed data was collected, including trip start and end stations, start and end times, trip duration, trip ID, and user type. From 2017 to 2023, the data was further refined with the addition of unique identifiers for each station (station ID). In 2024, information on bike models was added. The data release cycle also varied across different periods, with some data released quarterly and others monthly. Despite the consistency in the recorded content each year, variable names differ.
 
@@ -526,13 +540,13 @@ In evaluating the data collection methods, I focused on accuracy, completeness, 
 Bike Share Toronto records ride data in real time through sensors and communication devices, an automated collection method that effectively reduces errors associated with manual recording. Additionally, data is directly stored in a central database and updated in real time, enhancing accuracy. However, sensor devices may be subject to hardware failures or communication interruptions, leading to minor data loss or errors. Although such occurrences are rare, they need to be addressed during data preprocessing.
 
 **Completeness**  
-The dataset covers all ride records since 2014, with data variables expanding as the system and technology improved. This historical and comprehensive nature allows the data to reflect long-term trends in Toronto's bike-sharing system. However, the limited variables in early data (e.g., only hourly usage for 2014-2015) require researchers to be mindful of inconsistencies across years, and early data may need supplementation or transformation to meet research needs.
+The dataset covers all ride records since 2014, with data variables expanding as the system and technology improved. This historical and detailed nature allows the data to reflect long-term trends in Toronto's bike-sharing system. However, the limited variables in early data (e.g., only hourly usage for 2014-2015) require researchers to be mindful of inconsistencies across years, and early data may need supplementation or transformation to meet research needs.
 
 **Consistency**  
 Although the Bike Share Toronto dataset has expanded annually with new variables, changes in variable names can pose challenges for data analysis. For instance, some variables have been named differently across different years, requiring standardization during data cleaning. Additionally, the variation in data release cycles (quarterly or monthly) could affect the continuity of time series analysis, necessitating data resampling or aggregation to ensure consistency.
 
 **Relevance**  
-The detailed variables in the dataset (such as station ID, ride duration, and user type) provide opportunities for multidimensional analysis, enabling researchers to explore geographic distribution, temporal patterns, and user behavior. Since the dataset represents a population rather than a sample, researchers have greater flexibility in their study focus, ranging from micro-level user behavior to macro-level trend analysis. However, this comprehensiveness also increases the difficulty of data cleaning, such as dealing with redundant data, outliers, and the computational burden of large-scale data processing. Moreover, anonymization protects user privacy, it may limit certain studies focusing on micro-level user behavior.
+The detailed variables in the dataset (such as station ID, ride duration, and user type) provide opportunities for multidimensional analysis, enabling researchers to explore geographic distribution, temporal patterns, and user behavior. Since the dataset represents a population rather than a sample, researchers have greater flexibility in their study focus, ranging from micro-level user behavior to macro-level trend analysis. However, this exhaustiveness also increases the difficulty of data cleaning, such as dealing with redundant data, outliers, and the computational burden of large-scale data processing. Moreover, anonymization protects user privacy, it may limit certain studies focusing on micro-level user behavior.
 
 # Idealized Methodology
 
@@ -542,13 +556,13 @@ This study proposes an ideal data collection approach for bike-sharing systems, 
 
 ## Data Diversity
 
-Diversity in data collection is crucial for enhancing research flexibility and ensuring reliable results. A well-rounded dataset for bike-sharing systems should consider several key aspects:
+Diversity in data collection is important for enhancing research flexibility and ensuring reliable results. A well-rounded dataset for bike-sharing systems should consider several key aspects:
 
 First, **data variable diversity** is fundamental. Beyond basic cycling metrics such as frequency, duration, distance, and station information, data should include geographic details (e.g., station latitude, longitude, topographical features), temporal information (e.g., timestamps, weekday or weekend classification, seasonal changes), environmental factors (e.g., weather, air quality, traffic), and socioeconomic indicators (e.g., regional income, population density). These dimensions help capture the range of factors that influence bike-sharing usage, enabling a detailed analysis of user behavior and external influences.
 
 **Spatial and temporal coverage** also play a significant role in data representativeness. Spatially, data should include all bike stations, from central urban to suburban areas, to analyze varying usage patterns. Temporally, data should span several years to support trend analysis and should have high temporal resolution (e.g., minute-level precision) to capture short-term variations.
 
-Ensuring **compatibility of data formats and platforms** is critical for effective use of diverse datasets. Collected data should support structured formats (e.g., rental records), unstructured formats (e.g., user feedback), and geospatial information (e.g., GIS formats). Standardized formats like CSV, JSON, or Parquet along with metadata should be used for easy integration across platforms such as GIS systems, machine learning tools, and statistical analysis tools.
+Ensuring **compatibility of data formats and platforms** is important for effective use of diverse datasets. Collected data should support structured formats (e.g., rental records), unstructured formats (e.g., user feedback), and geospatial information (e.g., GIS formats). Standardized formats like CSV, JSON, or Parquet along with metadata should be used for easy integration across platforms such as GIS systems, machine learning tools, and statistical analysis tools.
 
 ## Reliable Data Collection Processes
 
@@ -556,9 +570,9 @@ To ensure reliability, bike-sharing data collection should involve a well-struct
 
 **Automated data collection systems** are essential for improving efficiency and accuracy. IoT-enabled sensors can be installed on bikes and docking stations to automatically record data such as trip start and end times, duration, and station occupancy. GPS and accelerometers on bicycles enable accurate tracking of movement patterns, distance, and speed. Wireless data transmission reduces manual errors and minimizes the risk of data loss during storage or transfer.
 
-Implementing **redundant data collection mechanisms** is crucial for preventing data loss due to sensor malfunctions. Installing multiple sensors on bikes and stations serves as a backup system. For instance, sensors on bikes can complement the data from docking stations. A centralized monitoring system can cross-check data from multiple sources to detect inconsistencies or missing information, thereby improving data integrity and reliability.
+Implementing **redundant data collection mechanisms** is important for preventing data loss due to sensor malfunctions. Installing multiple sensors on bikes and stations serves as a backup system. For instance, sensors on bikes can complement the data from docking stations. A centralized monitoring system can cross-check data from multiple sources to detect inconsistencies or missing information, thereby improving data integrity and reliability.
 
-To enhance data comprehensiveness, integrating **authoritative environmental and traffic data APIs** can be highly beneficial. For example, APIs from OpenWeatherMap or government meteorological services can provide real-time information on weather conditions, air quality, wind speed, and precipitation. Traffic data from relevant authorities can provide insights into road congestion levels. Combining these variables with bike-sharing records can reveal how external conditions affect user behavior, ultimately guiding bike allocation and station optimization.
+To enhance data exhaustiveness, integrating **authoritative environmental and traffic data APIs** can be highly beneficial. For example, APIs from OpenWeatherMap or government meteorological services can provide real-time information on weather conditions, air quality, wind speed, and precipitation. Traffic data from relevant authorities can provide understandings into road congestion levels. Combining these variables with bike-sharing records can understand how external conditions affect user behavior, ultimately guiding bike allocation and station optimization.
 
 ## Error Detection and Correction
 
@@ -568,7 +582,7 @@ Error detection and correction are vital for maintaining data quality and ensuri
 
 **Automated correction mechanisms** are needed to address these anomalies. Three common correction methods include: (1) filling in missing data using historical trends—for example, estimating missing values based on average usage from similar periods; (2) referring to data from nearby stations to estimate missing information; and (3) using contextual data such as weather or traffic to adjust corrections, which ensures the data aligns with real-world scenarios. These methods help maintain accuracy while reducing the impact of missing or incorrect data.
 
-Ensuring **data transparency** is crucial. All corrected records should be labeled with information about the sources, methods, and reasons for modification. This transparency helps maintain data integrity and fosters trust among researchers and system operators.
+Ensuring **data transparency** is important. All corrected records should be labeled with information about the sources, methods, and reasons for modification. This transparency helps maintain data integrity and fosters trust among researchers and system operators.
 
 ## Ethical Considerations
 
@@ -612,6 +626,8 @@ kable(bike_share_part1)
 #| echo: false
 #| label: tbl-p2
 #| tbl-cap: "Simulated Ideal Dataset Part 2"
+
+#Simulated Ideal Dataset Part 2.
 bike_share_part2 <- data.frame(
   End_Station_ID = sample(100:200, 5, replace = TRUE),
   End_Station_Name = paste("Station", sample(100:200, 5, replace = TRUE)),
@@ -631,6 +647,7 @@ kable(bike_share_part2)
 #| echo: false
 #| label: tbl-p3
 #| tbl-cap: "Simulated Ideal Dataset Part 3"
+#Simulated Ideal Dataset Part 3.
 bike_share_part3 <- data.frame(
   Trip_Duration_s = sample(300:3600, 5, replace = TRUE),
   Trip_Distance_m = sample(500:10000, 5, replace = TRUE),
@@ -649,6 +666,7 @@ kable(bike_share_part3)
 #| echo: false
 #| label: tbl-p4
 #| tbl-cap: "Simulated Ideal Dataset Part 4"
+#Simulated Ideal Dataset Part 4.
 bike_share_part4 <- data.frame(
   Weather_Conditions = sample(c("Sunny", "Cloudy", "Rainy"), 5, replace = TRUE),
   Air_Quality_Index = sample(10:100, 5, replace = TRUE),
@@ -667,6 +685,7 @@ kable(bike_share_part4)
 #| echo: false
 #| label: tbl-p5
 #| tbl-cap: "Simulated Ideal Dataset Part 5"
+#Simulated Ideal Dataset Part 5.
 bike_share_part5 <- data.frame(
   Available_Docks_at_End_Station = sample(0:20, 5, replace = TRUE),
   Device_Status = sample(c("Operational", "Faulty"), 5, replace = TRUE),
@@ -685,6 +704,7 @@ kable(bike_share_part5)
 #| echo: false
 #| label: tbl-p6
 #| tbl-cap: "Simulated Ideal Dataset Part 6"
+#Simulated Ideal Dataset Part 6.
 bike_share_part6 <- data.frame(
   User_Gender = sample(c("Male", "Female", "Other"), 5, replace = TRUE),
   Anomalies = sample(c("None", "Sensor Error", "Docking Failure"), 5, replace = TRUE),
