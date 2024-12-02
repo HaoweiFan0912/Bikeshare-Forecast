@@ -126,7 +126,7 @@ It is important to note that there may be a relationship between the two indepen
 #| message: false
 #| echo: false
 #| label: tbl-varibale
-#| tbl-cap: "Variables' summary"
+#| tbl-cap: "Summary of Key Variables"
 
 #Calculate the summary of each variable.
 count_min <- min(start$count)
@@ -136,8 +136,8 @@ count_mean <- mean(start$count)
 count_3rd_qu <- quantile(start$count, 0.75)
 count_max <- max(start$count)
 
-summ <- data_frame(station_name = c("Type: Character", "Number of Unique Values: 27", NA, NA, NA, NA),
-                   time = c("Earliest: 2017-01-01 04:00:00", "Latest: 2024-09-30 20:00:00", NA, NA, NA, NA),
+summ <- data_frame(station_name = c("Type: Character", "Number of Unique Values: 27", " ", " ", " ", " "),
+                   time = c("Type: Character", "Earliest: 2017-01-01 04:00:00", "Latest: 2024-09-30 20:00:00", " ", " ", " "),
                    count = c(paste("min:",count_min),
                              paste("1st Qu:",count_1st_qu),
                              paste("median:",count_median),
@@ -153,7 +153,7 @@ kable(summ)
 @fig-daily_usage shows the daily usage totals of 27 shared bicycle stations from January 1, 2017, to September 30, 2024. It can be observed that the usage of the 27 bike-sharing stations at the University of Toronto's St. George campus has shown a steady upward trend, with an average increase of 1 use every 20 days. At the same time, there are clear seasonal variations: usage is higher in the spring and summer months (April to September) and significantly lower in the fall and winter months (October to March). Additionally, there was an abnormal surge in usage from June to September 2024, which can be attributed to two main reasons. First, historical data indicates that usage typically spikes in August and September each year, likely due to increased demand from students returning to campus for the start of the academic year. Second, during the same period in 2024, Bike Share Toronto added 52 new stations, most of which were located near the St. George campus, significantly enhancing the network's coverage and convenience[@bike]. These two factors combined led to the appearance of anomalies in August and September 2024.
 ```{r, fig.pos="H"}
 #| label: fig-daily_usage
-#| fig-cap: Daily usage from January 2017 to September 2024
+#| fig-cap: "Daily usage from January 2017 to September 2024"
 #| echo: false
 #| message: false
 #| warning: false
@@ -186,7 +186,7 @@ ggplot(data = daily_counts, aes(x = time, y = total_count)) +
 
 ```{r, fig.pos="H"}
 #| label: fig-timely_usage
-#| fig-cap: Total usage during different time periods from January 2017 to September 2024
+#| fig-cap: "Total usage during different time periods from January 2017 to September 2024"
 #| echo: false
 #| message: false
 #| warning: false
@@ -234,7 +234,7 @@ ggplot(data = total_counts, aes(x = time_interval, y = count, fill = time_interv
 
 ```{r, fig.width=8, fig.height=5, fig.pos="H"}
 #| label: fig-difference_usage
-#| fig-cap: Difference of daily average of bicycle parking and departure volumes for each station
+#| fig-cap: "Difference of daily average of bicycle parking and departure volumes for each station"
 #| echo: false
 #| message: false
 #| warning: false
@@ -303,7 +303,8 @@ Equation\ref{eq:poisson} is the model used in this study:
 \label{eq:poisson}
 \end{equation}
 
-This study employs a Bayesian linear Poisson model to predict the variable `count`, which represents the expected number of bike-sharing usage events at a specific station on the St. George campus of the University of Toronto within a future 4-hour interval. The `count` is assumed to follow a $\text{Poisson}(\lambda)$ distribution, where $\log(\lambda)$ is the logarithmic transformation of the count. This transformation provides a simpler and more stable way to describe the relationship between the `count` and its influencing factors.
+This study employs a Bayesian linear Poisson model to predict the variable `count`, which represents the expected number of bike-sharing usage events at a specific station on the St. George campus of the University of Toronto within a future 4-hour interval. The `count` is assumed to follow a $\text{Poisson}(\lambda)$ distribution, where 
+$\lambda$ represents the average number of times a specific station is used every four hours, and $\log(\lambda)$ is the logarithmic transformation of $\lambda$. This transformation provides a simpler and more stable way to describe the relationship between the `count` and its influencing factors.
 
 The predictors used in this model are as follows:
 \begin{itemize}
@@ -312,6 +313,8 @@ The predictors used in this model are as follows:
   \item day: The day of the month being predicted.
   \item hour: The time interval within the day being predicted. For example, a value of 12 represents the 4-hour interval from the 12th hour to the 16th hour in a 24-hour day.
 \end{itemize}
+
+All predictors in this study are treated as categorical variables rather than time-based or numerical, aiming to reduce potential latent correlations between samples caused by temporal continuity.
 
 The intercept $\beta_0$ represents the baseline level of the response variable `count` when all predictors (`year`, `month`, `day`, and `hour`) are zero. A relatively broad prior distribution, $\mathcal{N}(0, 5)$, is assigned to $\beta_0$ due to the lack of strong prior knowledge about the baseline demand. This allows the model to flexibly learn the actual baseline demand from the data. Additionally, given the potential for significant variability in baseline usage levels at different times, the broad prior ensures that the model can account for this uncertainty effectively.
 
@@ -323,14 +326,16 @@ The model was chosen based on the nature of the variable *count*, as this study 
 
 This study considered using the ARIMA (autoregressive integrated moving average) model as an alternative but ultimately decided against it due to its limitations in capturing the specific characteristics of bike-sharing usage data. Although the ARIMA model has advantages in time series analysis, allowing for more accurate short-term predictions with parameters that have clearer interpretability. Bike-sharing usage exhibits significant seasonal patterns, time-of-day effects, and count-based characteristics, while ARIMA models are primarily suited for stationary time series with linear autocorrelations. ARIMA struggles to effectively address non-stationary trends and overdispersion, such as the marked decrease in usage during winter. Although extensions like SARIMA (Seasonal ARIMA) can account for seasonality, they still cannot directly handle the count-based nature of the data. In contrast, Bayesian Poisson regression is specifically designed for count data, allowing for the flexible integration of variables such as year, month, and specific four-hour intervals. Additionally, the Bayesian framework provides posterior distributions, offering deeper 
 ideas into parameter uncertainty and variability, which are 
-important for policy decisions. Therefore, Bayesian Poisson regression is more suitable for this study than the ARMA model.
+important for policy decisions. Therefore, Bayesian Poisson regression is more suitable for this study than the ARIMA model.
 
 ## Validation
-@fig-PPvsFV is the residual plot. It demonstrates several strengths of the model. First, the residuals are primarily distributed around the zero line, indicating that the model does not exhibit significant systematic bias in its predictions. This suggests that the model is generally effective at capturing the central trends of the data. Second, the residual distribution shows a consistent linear pattern, reflecting the model's stability across different levels of fitted values. This consistency implies that the model performs reliably in its predictions for various ranges of the response variable. Third, the model successfully captures localized patterns in the data, as evidenced by the structured yet controlled behavior of the residuals. 
+In this section, the study selects "Galbraith Rd / King's College Rd" as the most representative station to validate the model. This station was chosen for several reasons: it is centrally located within the University of Toronto's St. George campus, it ranks among the top five stations in terms of data volume, and it has maintained the shortest average maintenance time every six months since its establishment[@bike].
+
+@fig-PPvsFV illustrates the comparison between Pearson residuals and fitted values for the model of the "Galbraith Rd / King's College Rd" station. It demonstrates several strengths of the model. First, the residuals are primarily distributed around the zero line, indicating that the model does not exhibit significant systematic bias in its predictions. This suggests that the model is generally effective at capturing the central trends of the data. Second, the residual distribution shows a consistent linear pattern, reflecting the model's stability across different levels of fitted values. This consistency implies that the model performs reliably in its predictions for various ranges of the response variable. Third, the model successfully captures localized patterns in the data, as evidenced by the structured yet controlled behavior of the residuals. 
 
 ```{r, fig.pos="H"}
 #| label: fig-PPvsFV
-#| fig-cap: Pearson Residuals vs Fitted Values
+#| fig-cap: "Pearson Residuals vs Fitted Values: \"Galbraith Rd / King's College Rd\" Model"
 #| echo: false
 #| message: false
 #| warning: false
@@ -357,11 +362,11 @@ ggplot(data, aes(x = fitted(poisson_glm), y = pearson_residuals)) +
   labs(x = "Fitted Values", y = "Pearson Residuals")
 
 ```
-@fig-PPplot is the posterior predictive check plot. The posterior predictive check plot highlights several strengths of the model. The predicted distribution ($y_{rep}$) closely aligns with the observed distribution ($y$), particularly at the primary density peak near 0 and the secondary peaks within the 2-5 range, indicating that the model effectively captures the overall data distribution. Additionally, the model successfully reflects the multimodal nature of the data, accurately identifying multiple peaks, which demonstrates its capability to handle complex data patterns. The tail behavior of the predicted distribution is also consistent with the observed distribution, showing that the model performs well in accounting for rare or extreme events. Furthermore, the uncertainty of the predicted distribution is appropriately moderate, neither too narrow to indicate overconfidence nor too wide to suggest excessive variability. 
+@fig-PPplot is the posterior predictive check plot of the model of the "Galbraith Rd / King's College Rd" station. The posterior predictive check plot highlights several strengths of the model. The predicted distribution ($y_{rep}$) closely aligns with the observed distribution ($y$), particularly at the primary density peak near 0 and the secondary peaks within the 2-5 range, indicating that the model effectively captures the overall data distribution. Additionally, the model successfully reflects the multimodal nature of the data, accurately identifying multiple peaks, which demonstrates its capability to handle complex data patterns. The tail behavior of the predicted distribution is also consistent with the observed distribution, showing that the model performs well in accounting for rare or extreme events. Furthermore, the uncertainty of the predicted distribution is appropriately moderate, neither too narrow to indicate overconfidence nor too wide to suggest excessive variability. 
 
 ```{r, fig.pos="H"}
 #| label: fig-PPplot
-#| fig-cap: Posterior Predictive Checks
+#| fig-cap: "Posterior Predictive Checks: \"Galbraith Rd / King's College Rd\" Model"
 #| echo: false
 #| message: false
 #| warning: false
@@ -373,14 +378,14 @@ pp_check(poisson_glm, plotfun = "dens_overlay", nreps = 100) +
   ) +
    yaxis_text()
 ```
-The credible intervals shown in @tbl-crediinte highlight several strengths of the model. Key variables such as hour, month, and year have narrow credible intervals that do not include zero, indicating their significant and consistent influence on the response variable. This demonstrates the model’s ability to effectively capture important trends and relationships in the data, particularly those related to time and seasonal effects. Additionally, the relatively small width of these intervals reflects the stability and reliability of parameter estimates, suggesting that the model is well-calibrated and robust in its predictions. The intercept, while having a broader credible interval, provides a reasonable baseline estimate, reflecting the overall level of the response variable.
+The credible intervals shown in @tbl-crediinte highlight several strengths of the model of the "Galbraith Rd / King's College Rd" station. Key variables such as hour, month, and year have narrow credible intervals that do not include zero, indicating their significant and consistent influence on the response variable. This demonstrates the model’s ability to effectively capture important trends and relationships in the data, particularly those related to time and seasonal effects. Additionally, the relatively small width of these intervals reflects the stability and reliability of parameter estimates, suggesting that the model is well-calibrated and robust in its predictions. The intercept, while having a broader credible interval, provides a reasonable baseline estimate, reflecting the overall level of the response variable.
 
 ```{r}
 #| warning: false
 #| message: false
 #| echo: false
 #| label: tbl-crediinte
-#| tbl-cap: "Credible intervals"
+#| tbl-cap: "Credible intervals of model coefficients: \"Galbraith Rd / King's College Rd\" Model"
 posterior_draws <- as.matrix(poisson_glm)
 
 # Compute credible intervals
@@ -597,6 +602,71 @@ Data collection in bike-sharing systems must take ethical considerations into ac
 For **sustainable data collection**, it is important to optimize both infrastructure and data management. Solar-powered equipment at docking stations can reduce dependence on traditional power sources by using clean energy for data collection. Dynamic data collection mechanisms that adjust frequency based on demand can help avoid unnecessary energy use. For example, reducing data collection during off-peak hours and increasing it during peak times can help balance operational needs while minimizing resource consumption. Sharing data collection infrastructure with other city services, such as traffic and environmental monitoring, can also reduce redundant investments.
 
 In terms of **user privacy protection**, both technical and management measures are necessary. Anonymization techniques should replace identifiable information with pseudonyms, and differential privacy can be used to add noise to the dataset, preventing re-identification of users. Following the principle of data minimization, only essential data should be collected—for instance, avoiding the collection of detailed home addresses. Clear privacy policies should inform users about data collection, use, and storage, while allowing them to access or delete their personal data. Regular third-party audits can assess privacy measures and identify areas for improvement, building user trust through transparency.
+
+## A Proposed Idealized Data Collection Checklist
+
+This streamlined checklist ensures that the data collection process is efficient, ethical, and aligned with operational objectives.
+
+**1. Data Requirements**
+
+- **☐ Clearly defined objectives:** Is the purpose of data collection (e.g., operational optimization, user behavior analysis) well-defined?
+
+- **☐ Key variables identified:** Are the data and variables necessary to meet the research requirements clearly defined and well-structured?
+
+- **☐ Data minimization:** Is only the data necessary to meet objectives being collected?
+
+**2. Ethical and Legal Considerations**
+
+- **☐ User privacy protection:** Are anonymization techniques (e.g., pseudonymization, differential privacy) in place to protect user identities?
+
+- **☐ Informed consent:** Have users been informed about the data being collected and provided their consent?
+
+- **☐ Compliance with laws:** Is the process compliant with relevant regulations?
+
+- **☐ Transparency:** Are privacy policies clearly communicated and accessible to users?
+
+**3. Data Collection Methods**
+
+- **☐ Functional devices:** Are IoT sensors, GPS, and accelerometers operating effectively for accurate data collection?
+
+- **☐ Optimized frequency:** Is the frequency of data collection adjusted dynamically based on operational needs (e.g., higher during peak hours)?
+
+- **☐ Integration with third-party sources:** Are APIs for weather, traffic, and environmental conditions incorporated?
+
+**4. Infrastructure and Resource Efficiency**
+
+- **☐ Energy-efficient systems:** Are low-power devices and renewable energy sources (e.g., solar panels) used to minimize energy consumption?
+
+- **☐ Shared infrastructure:** Are existing city resources (e.g., traffic management systems) utilized to avoid redundancy?
+
+**5. Data Quality Assurance**
+
+- **☐ Validation rules:** Are there checks for variable accuracy, such as valid GPS coordinates and positive trip durations?
+
+- **☐ Error detection:** Are algorithms in place to identify outliers, inconsistencies, and missing data?
+
+- **☐ Correction mechanisms:** Are processes for handling errors or filling missing data (e.g., using historical trends or nearby station data) established?
+
+**6. Data Security and Storage**
+
+- **☐ Secure protocols:** Is data encrypted during storage and transmission？
+
+- **☐ Retention policy:** Is a clear data retention timeline defined and adhered to?
+
+**7. Monitoring and Maintenance**
+
+- **☐ Regular calibration:** Are sensors regularly calibrated to maintain accuracy?
+
+- **☐ Real-time monitoring:** Is a system in place to track device health and data flow?
+
+- **☐ Proactive maintenance:** Are preventive maintenance plans implemented to reduce downtime?
+
+**8. Feedback and Review**
+
+- **☐ Stakeholder review:** Has the data collection process been reviewed by all relevant teams (e.g., operations, legal, ethics)?
+
+- **☐ User feedback:** Are mechanisms available for users to provide feedback or report concerns about data practices?
+
 
 ## A Proposed Idealized Data Framework
 @tbl-p1, @tbl-p2, @tbl-p3, @tbl-p4, @tbl-p5, @tbl-p5 show a simulation of proposed ideal dataset.
