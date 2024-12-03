@@ -94,7 +94,7 @@ To predict the relationship between bike-sharing usage and time within the Unive
 
 This data is particularly ideal for the study also due to its high reliability, which stems from the commercial nature of bike-sharing operations. The bike-sharing system ensures accurate data collection and management by automatically recording ride information. Each bike and docking station is equipped with sensors and communication devices, enabling the capture of detailed trip data.
 
-However, the raw data cannot be used directly in this project; sophisticated data cleaning is required, with specific steps and reasons as follows: First, data from 2015–2016 was excluded because the collection and recording methods during those years differed significantly from later periods and did not include the time and station variables necessary for this study. Next, data from stations located within the University of Toronto's St. George campus was extracted from the remaining samples to align with the study's objectives. Then, the variables `time` and `count` were constructed to record the total usage at each station within specific four-hour intervals. Finally, the variables of interest were extracted, and the data format was standardized to ensure compatibility for subsequent analysis. The cleaned data is presented in the format shown in @tbl-cleaned_data.
+However, the raw data cannot be used directly in this project; sophisticated data cleaning is required, with general steps as follows: Data prior to 2017 was excluded, and the dataset was filtered to focus on 27 locations within the St. George campus of the University of Toronto. Essential variables (`trip_start_time` and `from_station_name`) were retained, missing values were removed, and `trip_start_time` was standardized and transformed into 4-hour intervals for temporal analysis. The total usage count for each station during these intervals from January 1, 2017, to September 30, 2024, was calculated. Finally, variables were renamed (`trip_start_time` to `time` and `from_station_name` to `station_name`). The cleaned data is presented in the format shown in @tbl-cleaned_data. And a more detailed data cleaning process and reasons can be found in Appendix @sec-dcp.
 
 ```{r}
 #| warning: false
@@ -533,7 +533,7 @@ Another potential avenue for future research is extending the study beyond the c
 \newpage
 
 
-\appendix
+\appendix 
 # Appendix {-}
 
 # Data Collection Methodology
@@ -609,63 +609,63 @@ This streamlined checklist ensures that the data collection process is efficient
 
 **1. Data Requirements**
 
-- **☐ Clearly defined objectives:** Is the purpose of data collection (e.g., operational optimization, user behavior analysis) well-defined?
+- **$\Box$ Clearly defined objectives:** Is the purpose of data collection (e.g., operational optimization, user behavior analysis) well-defined?
 
-- **☐ Key variables identified:** Are the data and variables necessary to meet the research requirements clearly defined and well-structured?
+- **$\Box$ Key variables identified:** Are the data and variables necessary to meet the research requirements clearly defined and well-structured?
 
-- **☐ Data minimization:** Is only the data necessary to meet objectives being collected?
+- **$\Box$ Data minimization:** Is only the data necessary to meet objectives being collected?
 
 **2. Ethical and Legal Considerations**
 
-- **☐ User privacy protection:** Are anonymization techniques (e.g., pseudonymization, differential privacy) in place to protect user identities?
+- **$\Box$ User privacy protection:** Are anonymization techniques (e.g., pseudonymization, differential privacy) in place to protect user identities?
 
-- **☐ Informed consent:** Have users been informed about the data being collected and provided their consent?
+- **$\Box$ Informed consent:** Have users been informed about the data being collected and provided their consent?
 
-- **☐ Compliance with laws:** Is the process compliant with relevant regulations?
+- **$\Box$ Compliance with laws:** Is the process compliant with relevant regulations?
 
-- **☐ Transparency:** Are privacy policies clearly communicated and accessible to users?
+- **$\Box$ Transparency:** Are privacy policies clearly communicated and accessible to users?
 
 **3. Data Collection Methods**
 
-- **☐ Functional devices:** Are IoT sensors, GPS, and accelerometers operating effectively for accurate data collection?
+- **$\Box$ Functional devices:** Are IoT sensors, GPS, and accelerometers operating effectively for accurate data collection?
 
-- **☐ Optimized frequency:** Is the frequency of data collection adjusted dynamically based on operational needs (e.g., higher during peak hours)?
+- **$\Box$ Optimized frequency:** Is the frequency of data collection adjusted dynamically based on operational needs (e.g., higher during peak hours)?
 
-- **☐ Integration with third-party sources:** Are APIs for weather, traffic, and environmental conditions incorporated?
+- **$\Box$ Integration with third-party sources:** Are APIs for weather, traffic, and environmental conditions incorporated?
 
 **4. Infrastructure and Resource Efficiency**
 
-- **☐ Energy-efficient systems:** Are low-power devices and renewable energy sources (e.g., solar panels) used to minimize energy consumption?
+- **$\Box$ Energy-efficient systems:** Are low-power devices and renewable energy sources (e.g., solar panels) used to minimize energy consumption?
 
-- **☐ Shared infrastructure:** Are existing city resources (e.g., traffic management systems) utilized to avoid redundancy?
+- **$\Box$ Shared infrastructure:** Are existing city resources (e.g., traffic management systems) utilized to avoid redundancy?
 
 **5. Data Quality Assurance**
 
-- **☐ Validation rules:** Are there checks for variable accuracy, such as valid GPS coordinates and positive trip durations?
+- **$\Box$ Validation rules:** Are there checks for variable accuracy, such as valid GPS coordinates and positive trip durations?
 
-- **☐ Error detection:** Are algorithms in place to identify outliers, inconsistencies, and missing data?
+- **$\Box$ Error detection:** Are algorithms in place to identify outliers, inconsistencies, and missing data?
 
-- **☐ Correction mechanisms:** Are processes for handling errors or filling missing data (e.g., using historical trends or nearby station data) established?
+- **$\Box$ Correction mechanisms:** Are processes for handling errors or filling missing data (e.g., using historical trends or nearby station data) established?
 
 **6. Data Security and Storage**
 
-- **☐ Secure protocols:** Is data encrypted during storage and transmission？
+- **$\Box$ Secure protocols:** Is data encrypted during storage and transmission？
 
-- **☐ Retention policy:** Is a clear data retention timeline defined and adhered to?
+- **$\Box$ Retention policy:** Is a clear data retention timeline defined and adhered to?
 
 **7. Monitoring and Maintenance**
 
-- **☐ Regular calibration:** Are sensors regularly calibrated to maintain accuracy?
+- **$\Box$ Regular calibration:** Are sensors regularly calibrated to maintain accuracy?
 
-- **☐ Real-time monitoring:** Is a system in place to track device health and data flow?
+- **$\Box$ Real-time monitoring:** Is a system in place to track device health and data flow?
 
-- **☐ Proactive maintenance:** Are preventive maintenance plans implemented to reduce downtime?
+- **$\Box$ Proactive maintenance:** Are preventive maintenance plans implemented to reduce downtime?
 
 **8. Feedback and Review**
 
-- **☐ Stakeholder review:** Has the data collection process been reviewed by all relevant teams (e.g., operations, legal, ethics)?
+- **$\Box$ Stakeholder review:** Has the data collection process been reviewed by all relevant teams (e.g., operations, legal, ethics)?
 
-- **☐ User feedback:** Are mechanisms available for users to provide feedback or report concerns about data practices?
+- **$\Box$ User feedback:** Are mechanisms available for users to provide feedback or report concerns about data practices?
 
 
 ## A Proposed Idealized Data Framework
@@ -793,6 +793,27 @@ kable(bike_share_part6)
 
 
 ```
+
+# Detailed Data Cleaning Process {#sec-dcp}
+To facilitate unified processing of all data, this study consolidated all CSV files into a single dataset by standardizing variable names, ensuring consistency across different data sources.  
+
+For consistency in the study, all data prior to 2017 was removed, as the Open Data Toronto website specifies that data before 2017 was provided by a different vendor and collected using different statistical methods [@opendata]. Another reason for excluding data prior to 2017 is: the earlier data did not include variables of interest, specifically the start time and station of each trip.  
+
+To collect the target sample, the study filtered the dataset to include only data of interest related to 27 specific locations within the St. George campus of the University of Toronto, focusing the analysis on the relevant geographical and contextual scope.  
+
+To simplify the dataset’s structure and reduce its size for efficient processing, the study extracted only the necessary variables, including `trip_start_time` and `from_station_name`, which are critical for subsequent analysis.  
+
+Considering that missing values represented a negligible proportion of the overall sample and would not significantly impact the results, the study removed all rows with `NA` or `NULL` values to maintain data integrity and ensure analytical accuracy.  
+
+To standardize the temporal information for consistent analysis, the format of `trip_start_time` was unified as "year-month-day hour:minute:second," providing a uniform reference for time-based computations.  
+
+In order to calculate the total usage across different time intervals, `trip_start_time` was transformed into a categorical indicator representing the corresponding 4-hour interval of the day.  
+
+The study derived the target variable by calculating the total usage count for each station during every 4-hour interval from January 1, 2017, 00:00 to September 30, 2024, 24:00.  
+
+Subsequently, the variable `trip_start_time` was renamed to `time`, and `from_station_name` was renamed to `station_name`. 
+
+Finally, the file was saved in Parquet format for efficient storage and processing.  
 
 \newpage
 
