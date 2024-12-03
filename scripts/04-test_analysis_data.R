@@ -8,13 +8,10 @@
 # Any other information needed? Make sure you are in the `Bikeshare-Forecast.Rproj`.
 # The code was completed under the guidance of ChatGPT-4, and the detailed interaction process can be found in the path：`other/llm_usage/`
 
-
-
-
 #### Workspace setup ####
 set.seed(912)
 # List of necessary packages
-packages <- c("tidyverse", "dplyr", "arrow")
+packages <- c("tidyverse", "dplyr", "arrow", "testthat")
 # Install missing packages
 missing_packages <- packages[!(packages %in% installed.packages()[, "Package"])]
 install.packages(missing_packages)
@@ -22,93 +19,202 @@ install.packages(missing_packages)
 lapply(packages, library, character.only = TRUE)
 
 #### Read data ####
-file_paths <- c("data/02-analysis_data/start.parquet", "data/02-analysis_data/stop.parquet")
+data_1 <- read_parquet(here::here("data/02-analysis_data/start.parquet"))
+data_2 <- read_parquet(here::here("data/02-analysis_data/stop.parquet"))
 
-test_dataset <- function(df) {
-  
-  # 1. Test if the data was successfully loaded
-  if (exists("df")) {
-    message("Test Passed: The dataset was successfully loaded.")
-  } else {
-    stop("Test Failed: The dataset could not be loaded.")
-  }
-  
-  # 2. Test if there are any missing values in the dataset
-  if (sum(is.na(df)) == 0) {
-    message("Test Passed: No missing values found in the dataset.")
-  } else {
-    stop("Test Failed: Missing values detected in the dataset.")
-  }
-  
-  # 3. Test if 'time' is within the range between 2017-01-01 00:00 and 2024-09-30 24:00
-  time_start <- as.POSIXct("2016-12-31 24:00:00", format="%Y-%m-%d %H:%M:%S", tz="UTC")
-  time_end <- as.POSIXct("2024-10-01 00:00:00", format="%Y-%m-%d %H:%M:%S", tz="UTC")
-  df$time <- as.POSIXct(df$time, format="%Y-%m-%d %H:%M:%S", tz="UTC")
-  if (all(df$time >= time_start & df$time <= time_end)) {
-    message("Test Passed: All time values are within the specified range.")
-  } else {
-    stop("Test Failed: Some time values are outside the specified range.")
-  }
-  
-  # 4. Test if there are any duplicate rows in the dataset
-  if (nrow(df) == nrow(unique(df))) {
-    message("Test Passed: No duplicate rows found in the dataset.")
-  } else {
-    stop("Test Failed: Duplicate rows detected in the dataset.")
-  }
-  
-  # 5. Test if 'count' has any negative values
-  if (all(df$count >= 0)) {
-    message("Test Passed: No negative values found in 'count'.")
-  } else {
-    stop("Test Failed: Negative values detected in 'count'.")
-  }
-  
-  # 6. Test if all station names are within the specified list of valid station names
-  ut_stations <- c("Madison Ave / Bloor St W", "Bloor St W / Huron St", "St. George St / Bloor St W", 
-                   "Sussex Ave / St George St", "Spadina Ave / Sussex Ave", "Spadina Ave / Harbord St - SMART",
-                   "St. George St / Hoskin Ave", "Spadina Ave / Willcocks St", "St. George St / Willcocks St",
-                   "Willcocks St / St. George St", "Queen's Park / Bloor St W", "Queen's Park Cres W / Hoskin Ave",
-                   "Wellesley St W / Queen's Park Cres", "Queen's Park Cres E / Grosvenor St - SMART", 
-                   "Bay St / Bloor St W (East Side)", "Bay St / Bloor St W (West Side)", "Bay St / Charles St W - SMART",
-                   "St. Joseph St / Bay St - SMART", "Bay St / St. Joseph St", "Bay St / Wellesley St W", 
-                   "Ursula Franklin St / Huron St - SMART", "Ursula Franklin St / St. George St - SMART", "Galbraith Rd / King's College Rd",
-                   "College St / Huron St", "College St / Henry St ", "Queens Park Cres / College St ", "University Ave / College St (East)")
-  
-  if (all(df$station_name %in% ut_stations)) {
-    message("Test Passed: All station names are within the specified list.")
-  } else {
-    stop("Test Failed: Some station names are not within the specified list.")
-  }
-  
-  # 7. Test if 'time' has hours falling into 4-hour intervals
-  time_hours <- as.numeric(format(df$time, "%H"))
+#### Test data ####
+# 1. Test if data is loaded successfully
+test_that("Data is loaded successfully", {
+  expect_s3_class(data_1, "tbl_df")
+  expect_gt(nrow(data_1), 0)
+})
+
+# 2. Test if data_1 is of data.frame type
+test_that("Data is of data_1.frame type", {
+  expect_true(is.data.frame(data_1))
+})
+
+# 3. Test if column names are correct
+test_that("Column names are as expected", {
+  expected_colnames <- c("station_name", "time", "count")
+  expect_equal(colnames(data_1), expected_colnames)
+})
+
+# 4. Test if the time column has no missing values
+test_that("Time column has no missing values", {
+  expect_true(all(!is.na(data_1$time)))
+})
+
+# 5. Test if the count column contains non-negative values
+test_that("Count column contains non-negative values", {
+  expect_true(all(data_1$count >= 0))
+})
+
+# 6. Test if there are no duplicate rows in the dataset
+test_that("No duplicate rows in the dataset", {
+  expect_equal(nrow(data_1), nrow(distinct(data_1)))
+})
+
+# 7. Test if the count column contains only integer values
+test_that("Count column contains only integer values", {
+  expect_true(all(data_1$count == as.integer(data_1$count)))
+})
+
+# 8. Test if there are no missing values in the dataset
+test_that("No missing values in the dataset", {
+  expect_true(all(complete.cases(data_1)))
+})
+# 9. Test if the dataset contains at least one record
+test_that("Dataset contains at least one record", {
+  expect_gt(nrow(data_1), 0)
+})
+
+# 10. Test if the time column does not contain future dates
+test_that("Time column does not contain future dates", {
+  expect_true(all(as.POSIXct(data_1$time) <= Sys.time()))
+})
+# 11. Test if the mean of the count column is greater than 0
+test_that("Mean of count column is greater than 0", {
+  expect_gt(mean(data_1$count), 0)
+})
+
+# 12. Test if time values are within the specified range
+test_that("Time values are within the specified range", {
+  time_start <- as.POSIXct("2017-01-01 00:00:00", format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+  time_end <- as.POSIXct("2024-09-30 24:00:00", format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+  data_1$time <- as.POSIXct(data_1$time, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+  expect_true(all(data_1$time >= time_start & data_1$time <= time_end))
+})
+
+# 13. Test if there are no duplicate rows in the dataset
+test_that("No duplicate rows in the dataset", {
+  expect_equal(nrow(data_1), nrow(unique(data_1)))
+})
+
+# 14. Test if all station names are within the specified list of valid station names
+test_that("All station names are within the specified list of valid station names", {
+  ut_stations <- c(
+    "Madison Ave / Bloor St W", "Bloor St W / Huron St", "St. George St / Bloor St W",
+    "Sussex Ave / St George St", "Spadina Ave / Sussex Ave", "Spadina Ave / Harbord St - SMART",
+    "St. George St / Hoskin Ave", "Spadina Ave / Willcocks St", "St. George St / Willcocks St",
+    "Willcocks St / St. George St", "Queen's Park / Bloor St W", "Queen's Park Cres W / Hoskin Ave",
+    "Wellesley St W / Queen's Park Cres", "Queen's Park Cres E / Grosvenor St - SMART",
+    "Bay St / Bloor St W (East Side)", "Bay St / Bloor St W (West Side)", "Bay St / Charles St W - SMART",
+    "St. Joseph St / Bay St - SMART", "Bay St / St. Joseph St", "Bay St / Wellesley St W",
+    "Ursula Franklin St / Huron St - SMART", "Ursula Franklin St / St. George St - SMART", "Galbraith Rd / King's College Rd",
+    "College St / Huron St", "College St / Henry St ", "Queens Park Cres / College St ", "University Ave / College St (East)"
+  )
+  expect_true(all(data_1$station_name %in% ut_stations))
+})
+
+# 15. Test if 'time' has hours falling into 4-hour intervals
+test_that("Time values fall into 4-hour intervals", {
+  ti <- as.POSIXct(data_1$time, format = "%Y-%m-%d %H:%M:%S")
+  time_hours <- as.numeric(format(ti, "%H"))
   valid_intervals <- all(time_hours %% 4 == 0 | time_hours %% 4 == 1 | time_hours %% 4 == 2 | time_hours %% 4 == 3)
-  
-  if (valid_intervals) {
-    message("Test Passed: All time values fall into 4-hour intervals.")
-  } else {
-    stop("Test Failed: Some time values do not fall into 4-hour intervals.")
-  }
-  
-  # 8. Test if there are any rows with the same 'time' and 'station_name'
-  duplicate_rows <- df[duplicated(df[, c("time", "station_name")]), ]
-  
-  if (nrow(duplicate_rows) == 0) {
-    message("Test Passed: No duplicate rows with the same 'time' and 'station_name' found.")
-  } else {
-    stop("Test Failed: Duplicate rows with the same 'time' and 'station_name' detected.")
-  }
-}
+  expect_true(valid_intervals)
+})
 
+# 16. Test if there are no rows with the same 'time' and 'station_name'
+test_that("No duplicate rows with the same 'time' and 'station_name'", {
+  duplicate_rows <- data_1[duplicated(data_1[, c("time", "station_name")]), ]
+  expect_equal(nrow(duplicate_rows), 0)
+})
 
-for (file_path in file_paths) {
-  message("\nTesting file: ", file_path)
-  tryCatch({
-    df <- read_parquet(file_path) 
-    df$time <- as.POSIXct(df$time, format="%Y-%m-%d %H:%M:%S") 
-    test_dataset(df) 
-  }, error = function(e) {
-    message("Error in file ", file_path, ": ", e$message)
-  })
-}
+# 17. Test if data is loaded successfully
+test_that("Data is loaded successfully", {
+  expect_s3_class(data_2, "tbl_df")
+  expect_gt(nrow(data_2), 0)
+})
+
+# 18. Test if data_2 is of data.frame type
+test_that("Data is of data_2.frame type", {
+  expect_true(is.data.frame(data_2))
+})
+
+# 19. Test if column names are correct
+test_that("Column names are as expected", {
+  expected_colnames <- c("station_name", "time", "count")
+  expect_equal(colnames(data_2), expected_colnames)
+})
+
+# 20. Test if the time column has no missing values
+test_that("Time column has no missing values", {
+  expect_true(all(!is.na(data_2$time)))
+})
+
+# 21. Test if the count column contains non-negative values
+test_that("Count column contains non-negative values", {
+  expect_true(all(data_2$count >= 0))
+})
+
+# 22. Test if there are no duplicate rows in the dataset
+test_that("No duplicate rows in the dataset", {
+  expect_equal(nrow(data_2), nrow(distinct(data_2)))
+})
+
+# 23. Test if the count column contains only integer values
+test_that("Count column contains only integer values", {
+  expect_true(all(data_2$count == as.integer(data_2$count)))
+})
+
+# 24. Test if there are no missing values in the dataset
+test_that("No missing values in the dataset", {
+  expect_true(all(complete.cases(data_2)))
+})
+# 25. Test if the dataset contains at least one record
+test_that("Dataset contains at least one record", {
+  expect_gt(nrow(data_2), 0)
+})
+
+# 26. Test if the time column does not contain future dates
+test_that("Time column does not contain future dates", {
+  expect_true(all(as.POSIXct(data_2$time) <= Sys.time()))
+})
+# 27. Test if the mean of the count column is greater than 0
+test_that("Mean of count column is greater than 0", {
+  expect_gt(mean(data_2$count), 0)
+})
+
+# 28. Test if time values are within the specified range
+test_that("Time values are within the specified range", {
+  time_start <- as.POSIXct("2017-01-01 00:00:00", format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+  time_end <- as.POSIXct("2024-09-30 24:00:00", format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+  data_2$time <- as.POSIXct(data_2$time, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+  expect_true(all(data_2$time >= time_start & data_2$time <= time_end))
+})
+
+# 29. Test if there are no duplicate rows in the dataset
+test_that("No duplicate rows in the dataset", {
+  expect_equal(nrow(data_2), nrow(unique(data_2)))
+})
+
+# 30. Test if all station names are within the specified list of valid station names
+test_that("All station names are within the specified list of valid station names", {
+  ut_stations <- c(
+    "Madison Ave / Bloor St W", "Bloor St W / Huron St", "St. George St / Bloor St W",
+    "Sussex Ave / St George St", "Spadina Ave / Sussex Ave", "Spadina Ave / Harbord St - SMART",
+    "St. George St / Hoskin Ave", "Spadina Ave / Willcocks St", "St. George St / Willcocks St",
+    "Willcocks St / St. George St", "Queen's Park / Bloor St W", "Queen's Park Cres W / Hoskin Ave",
+    "Wellesley St W / Queen's Park Cres", "Queen's Park Cres E / Grosvenor St - SMART",
+    "Bay St / Bloor St W (East Side)", "Bay St / Bloor St W (West Side)", "Bay St / Charles St W - SMART",
+    "St. Joseph St / Bay St - SMART", "Bay St / St. Joseph St", "Bay St / Wellesley St W",
+    "Ursula Franklin St / Huron St - SMART", "Ursula Franklin St / St. George St - SMART", "Galbraith Rd / King's College Rd",
+    "College St / Huron St", "College St / Henry St ", "Queens Park Cres / College St ", "University Ave / College St (East)"
+  )
+  expect_true(all(data_2$station_name %in% ut_stations))
+})
+
+# 31. Test if 'time' has hours falling into 4-hour intervals
+test_that("Time values fall into 4-hour intervals", {
+  ti <- as.POSIXct(data_2$time, format = "%Y-%m-%d %H:%M:%S")
+  time_hours <- as.numeric(format(ti, "%H"))
+  valid_intervals <- all(time_hours %% 4 == 0 | time_hours %% 4 == 1 | time_hours %% 4 == 2 | time_hours %% 4 == 3)
+  expect_true(valid_intervals)
+})
+
+# 32. Test if there are no rows with the same 'time' and 'station_name'
+test_that("No duplicate rows with the same 'time' and 'station_name'", {
+  duplicate_rows <- data_2[duplicated(data_2[, c("time", "station_name")]), ]
+  expect_equal(nrow(duplicate_rows), 0)
+})

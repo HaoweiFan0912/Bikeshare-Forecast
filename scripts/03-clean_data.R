@@ -49,10 +49,10 @@ for (i in seq_along(csv_list)) {
   }
   file <- file %>% select(trip_id, trip_start_time, from_station_name, trip_stop_time, to_station_name)
   csv_list[[i]] <- file
-}# This segment of code was completed with the assistance of ChatGPT-4.
+} # This segment of code was completed with the assistance of ChatGPT-4.
 
 # Create a new dataframe that combines all files
-df_combined <- do.call(rbind, csv_list)# This segment of code was completed with the assistance of ChatGPT-4.
+df_combined <- do.call(rbind, csv_list) # This segment of code was completed with the assistance of ChatGPT-4.
 
 # Standardize the date format
 # This segment of code was completed with the assistance of ChatGPT-4.
@@ -73,12 +73,14 @@ matches_stop <- grepl(pattern, df_combined$trip_stop_time)
 df_combined <- df_combined[matches_stop, ]
 df_combined <- df_combined %>%
   mutate(trip_start_time = ifelse(trip_id >= 712382 & trip_id <= 1253913,
-                                  format(dmy_hm(trip_start_time), "%m/%d/%Y %H:%M"),
-                                  trip_start_time))
+    format(dmy_hm(trip_start_time), "%m/%d/%Y %H:%M"),
+    trip_start_time
+  ))
 df_combined <- df_combined %>%
   mutate(trip_stop_time = ifelse(trip_id >= 712382 & trip_id <= 1253913,
-                                 format(dmy_hm(trip_stop_time), "%m/%d/%Y %H:%M"),
-                                 trip_stop_time))
+    format(dmy_hm(trip_stop_time), "%m/%d/%Y %H:%M"),
+    trip_stop_time
+  ))
 
 # Drop NULLs
 df_combined <- subset(df_combined, from_station_name != "NULL")
@@ -86,15 +88,17 @@ df_combined <- subset(df_combined, to_station_name != "NULL")
 
 # Find target samples
 unique_station <- data_frame(stations = unique(df_combined$from_station_name))
-ut_stations <- c("Madison Ave / Bloor St W", "Bloor St W / Huron St", "St. George St / Bloor St W", 
-                 "Sussex Ave / St George St", "Spadina Ave / Sussex Ave", "Spadina Ave / Harbord St - SMART",
-                 "St. George St / Hoskin Ave", "Spadina Ave / Willcocks St", "St. George St / Willcocks St",
-                 "Willcocks St / St. George St", "Queen's Park / Bloor St W", "Queen's Park Cres W / Hoskin Ave",
-                 "Wellesley St W / Queen's Park Cres", "Queen's Park Cres E / Grosvenor St - SMART", 
-                 "Bay St / Bloor St W (East Side)", "Bay St / Bloor St W (West Side)", "Bay St / Charles St W - SMART",
-                 "St. Joseph St / Bay St - SMART", "Bay St / St. Joseph St", "Bay St / Wellesley St W", 
-                 "Ursula Franklin St / Huron St - SMART", "Ursula Franklin St / St. George St - SMART", "Galbraith Rd / King's College Rd",
-                 "College St / Huron St", "College St / Henry St ", "Queens Park Cres / College St ", "University Ave / College St (East)")
+ut_stations <- c(
+  "Madison Ave / Bloor St W", "Bloor St W / Huron St", "St. George St / Bloor St W",
+  "Sussex Ave / St George St", "Spadina Ave / Sussex Ave", "Spadina Ave / Harbord St - SMART",
+  "St. George St / Hoskin Ave", "Spadina Ave / Willcocks St", "St. George St / Willcocks St",
+  "Willcocks St / St. George St", "Queen's Park / Bloor St W", "Queen's Park Cres W / Hoskin Ave",
+  "Wellesley St W / Queen's Park Cres", "Queen's Park Cres E / Grosvenor St - SMART",
+  "Bay St / Bloor St W (East Side)", "Bay St / Bloor St W (West Side)", "Bay St / Charles St W - SMART",
+  "St. Joseph St / Bay St - SMART", "Bay St / St. Joseph St", "Bay St / Wellesley St W",
+  "Ursula Franklin St / Huron St - SMART", "Ursula Franklin St / St. George St - SMART", "Galbraith Rd / King's College Rd",
+  "College St / Huron St", "College St / Henry St ", "Queens Park Cres / College St ", "University Ave / College St (East)"
+)
 df_combined <- df_combined[df_combined$from_station_name %in% ut_stations, ]
 df_combined <- df_combined[df_combined$to_station_name %in% ut_stations, ]
 
@@ -116,16 +120,16 @@ df_combined_stop <- df_combined_stop %>% select(-trip_stop_time)
 # Group by from(to)_station_name and the new interval, then count the occurrences
 result_start <- df_combined_start %>%
   group_by(from_station_name, interval) %>%
-  summarise(count = n())%>%
+  summarise(count = n()) %>%
   ungroup()
 result_stop <- df_combined_stop %>%
   group_by(to_station_name, interval) %>%
-  summarise(count = n())%>%
+  summarise(count = n()) %>%
   ungroup()
 
 # Make sure date are in the right format
-result_start$interval <- format(result_start$interval, format="%Y-%m-%d %H:%M:%S")
-result_stop$interval <- format(result_stop$interval, format="%Y-%m-%d %H:%M:%S")
+result_start$interval <- format(result_start$interval, format = "%Y-%m-%d %H:%M:%S")
+result_stop$interval <- format(result_stop$interval, format = "%Y-%m-%d %H:%M:%S")
 
 # Clean column names
 colnames(result_start)[colnames(result_start) == "interval"] <- "time"
@@ -138,4 +142,3 @@ result_stop <- result_stop %>% janitor::clean_names()
 #### Save data ####
 write_parquet(result_start, "data/02-analysis_data/start.parquet")
 write_parquet(result_stop, "data/02-analysis_data/stop.parquet")
-

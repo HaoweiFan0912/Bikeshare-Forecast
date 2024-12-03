@@ -12,7 +12,7 @@
 #### Workspace setup ####
 set.seed(912)
 # List of necessary packages
-packages <- c("arrow", "lubridate", "tidyverse","ggplot2", "reshape2")
+packages <- c("arrow", "lubridate", "tidyverse", "ggplot2", "reshape2")
 # Install missing packages
 missing_packages <- packages[!(packages %in% installed.packages()[, "Package"])]
 install.packages(missing_packages)
@@ -24,7 +24,7 @@ data <- read_parquet("data/02-analysis_data/start.parquet")
 
 #### EDA ####
 # Convert 'time' column to datetime format
-data$time <- as.POSIXct(data$time, format="%Y-%m-%d %H:%M:%S")
+data$time <- as.POSIXct(data$time, format = "%Y-%m-%d %H:%M:%S")
 
 # Add time-related columns
 data$year <- year(data$time)
@@ -191,4 +191,3 @@ data %>%
   ggplot(aes(x = is_weekend, y = total_count, fill = is_weekend)) +
   geom_bar(stat = "identity") +
   labs(title = "Total Count: Weekdays vs Weekends", x = "Day Type", y = "Total Count")
-

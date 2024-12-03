@@ -87,6 +87,10 @@ This study follows the workflow of Telling Stories with Data [@tellingstories], 
 
 **reshape2**[@reshape]: Used for reshaping redata, particularly converting between wide and long formats
 
+**testthat**[@tt]: Used to test whether the simulated data and analysis data meet the expected requirements.
+
+**styler**[@styler]: Used to organize code formatting and code comments.
+
 Additionally, this project utilized OpenAI's ChatGPT-4 [@openai2024chatgpt] to assist in writing parts of the code.
 
 ## Measurement
@@ -103,7 +107,7 @@ However, the raw data cannot be used directly in this project; sophisticated dat
 #| label: tbl-cleaned_data
 #| tbl-cap: "Samples of the dataset used for analysis"
 
-#Display the dataset.
+# Display the dataset.
 start |>
   tail() |>
   kable(booktabs = TRUE, align = "c")
@@ -128,7 +132,7 @@ It is important to note that there may be a relationship between the two indepen
 #| label: tbl-varibale
 #| tbl-cap: "Summary of Key Variables"
 
-#Calculate the summary of each variable.
+# Calculate the summary of each variable.
 count_min <- min(start$count)
 count_1st_qu <- quantile(start$count, 0.25)
 count_median <- median(start$count)
@@ -136,17 +140,20 @@ count_mean <- mean(start$count)
 count_3rd_qu <- quantile(start$count, 0.75)
 count_max <- max(start$count)
 
-summ <- data_frame(station_name = c("Type: Character", "Number of Unique Values: 27", " ", " ", " ", " "),
-                   time = c("Type: Character", "Earliest: 2017-01-01 04:00:00", "Latest: 2024-09-30 20:00:00", " ", " ", " "),
-                   count = c(paste("min:",count_min),
-                             paste("1st Qu:",count_1st_qu),
-                             paste("median:",count_median),
-                             paste("mean:", round(count_mean,0)),
-                             paste("3rd Qu:",count_3rd_qu),
-                             paste("max:",count_max)))
+summ <- data_frame(
+  station_name = c("Type: Character", "Number of Unique Values: 27", " ", " ", " ", " "),
+  time = c("Type: Character", "Earliest: 2017-01-01 04:00:00", "Latest: 2024-09-30 20:00:00", " ", " ", " "),
+  count = c(
+    paste("min:", count_min),
+    paste("1st Qu:", count_1st_qu),
+    paste("median:", count_median),
+    paste("mean:", round(count_mean, 0)),
+    paste("3rd Qu:", count_3rd_qu),
+    paste("max:", count_max)
+  )
+)
 
 kable(summ)
-
 ```
 
 
@@ -159,7 +166,7 @@ kable(summ)
 #| warning: false
 
 # Generate a copy of the data.
-start_asdate <- start 
+start_asdate <- start
 start_asdate$time <- as.Date(start_asdate$time)
 
 # Calculate the total count for each day.
@@ -167,7 +174,7 @@ daily_counts <- start_asdate %>%
   group_by(time) %>%
   summarise(total_count = sum(count))
 
-#Calculate the slope.
+# Calculate the slope.
 lm_model <- lm(total_count ~ time, data = daily_counts)
 slope <- coef(lm_model)["time"]
 
@@ -176,10 +183,10 @@ ggplot(data = daily_counts, aes(x = time, y = total_count)) +
   labs(x = "Time", y = "Daily usage") +
   theme_minimal() +
   geom_smooth(method = "lm") +
-  annotate("text", x = max(daily_counts$time), y = max(daily_counts$total_count), 
-           label = paste("Slope =", round(slope, 2)), hjust = 1.3)
-
-
+  annotate("text",
+    x = max(daily_counts$time), y = max(daily_counts$total_count),
+    label = paste("Slope =", round(slope, 2)), hjust = 1.3
+  )
 ```
 
 @fig-timely_usage shows the total usage and percentage of shared bicycles during different time intervals in a day from January 1, 2017, to September 30, 2024. It can be observed that the peak usage occurs between 12:00 to 16:00 (28.5%) and 16:00 to 20:00 (31.4%). The usage between 08:00 to 12:00 accounts for 19.9%, while the usage from 20:00 to 00:00 accounts for 13.4%. The time intervals with the lowest usage are 00:00 to 04:00 (3.6%) and 04:00 to 08:00 (3.2%).
@@ -195,7 +202,7 @@ ggplot(data = daily_counts, aes(x = time, y = total_count)) +
 options(scipen = 999)
 
 # Generate a copy of the data.
-start_astime <- start 
+start_astime <- start
 start_astime$time <- as.POSIXct(start_astime$time)
 
 # Calculate the total count for each time period.
@@ -209,7 +216,7 @@ start_astime <- start_astime %>%
     hour(time) >= 20 & hour(time) < 24 ~ "20:00 - 00:00"
   ))
 
-#Calculate the proportion.
+# Calculate the proportion.
 total_counts <- start_astime %>%
   group_by(time_interval) %>%
   summarise(count = sum(count, na.rm = TRUE)) %>%
@@ -218,16 +225,15 @@ total_counts <- start_astime %>%
 ggplot(data = total_counts, aes(x = time_interval, y = count, fill = time_interval)) +
   geom_bar(stat = "identity") +
   geom_text(aes(label = paste0(round(percentage, 1), "%")),
-            vjust = -0.5, size = 3) +
+    vjust = -0.5, size = 3
+  ) +
   labs(x = "Time interval", y = "Total usage") +
-  scale_y_continuous(labels = scales::comma) + 
+  scale_y_continuous(labels = scales::comma) +
   theme_minimal() +
   theme(
     legend.position = "none",
     axis.text.x = element_text(angle = 10, hjust = 1)
   )
-
-
 ```
 
 @fig-difference_usage shows the result of the average daily parking volume minus the departure volume at each station. It can be observed that most stations have balanced parking and departure volumes, but some stations show significant supply-demand differences. Specifically, stations such as Bay St / Charles St W – SMART and Bay St / Wellesley St W have noticeably higher departure volumes than parking, while College St / Huron St and College St / Henry St have higher parking volumes than departure, indicating an imbalance in supply and demand at these locations.
@@ -272,18 +278,20 @@ merged_data <- merge(average_counts_start, average_counts_stop, by.x = "station_
 
 # Handle non-positive integer mean.
 merged_data <- merged_data %>%
-  mutate(count_difference = ifelse((average_count.y - average_count.x) >= 0, 
-                                   ceiling(average_count.y - average_count.x), 
-                                   floor(average_count.y - average_count.x)))
+  mutate(count_difference = ifelse((average_count.y - average_count.x) >= 0,
+    ceiling(average_count.y - average_count.x),
+    floor(average_count.y - average_count.x)
+  ))
 
 
 ggplot(merged_data, aes(x = station_name, y = count_difference)) +
   geom_bar(stat = "identity", fill = "steelblue") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   labs(
-       x = "Station Name",
-       y = "Parking volume minus departure volume")+
-  ylim(-4, 3)+
+    x = "Station Name",
+    y = "Parking volume minus departure volume"
+  ) +
+  ylim(-4, 3) +
   coord_flip()
 ```
 
@@ -341,14 +349,15 @@ In this section, the study selects "Galbraith Rd / King's College Rd" as the mos
 #| warning: false
 options(scipen = 999)
 poisson_glm <- readRDS(here::here("models/College_St___Huron_St.rds"))
-data <- read_parquet(here::here("data/02-analysis_data/start.parquet")) %>% filter(station_name == "Galbraith Rd / King's College Rd
-")%>%
-    mutate(
-      hour = hour(time),
-      day = day(time),
-      month = month(time),
-      year = year(time)
-    )
+data <- read_parquet(here::here("data/02-analysis_data/start.parquet")) %>%
+  filter(station_name == "Galbraith Rd / King's College Rd
+") %>%
+  mutate(
+    hour = hour(time),
+    day = day(time),
+    month = month(time),
+    year = year(time)
+  )
 
 # 1. Residual diagnostics
 # Extract residuals
@@ -360,7 +369,6 @@ ggplot(data, aes(x = fitted(poisson_glm), y = pearson_residuals)) +
   geom_point() +
   geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
   labs(x = "Fitted Values", y = "Pearson Residuals")
-
 ```
 @fig-PPplot is the posterior predictive check plot of the model of the "Galbraith Rd / King's College Rd" station. The posterior predictive check plot highlights several strengths of the model. The predicted distribution ($y_{rep}$) closely aligns with the observed distribution ($y$), particularly at the primary density peak near 0 and the secondary peaks within the 2-5 range, indicating that the model effectively captures the overall data distribution. Additionally, the model successfully reflects the multimodal nature of the data, accurately identifying multiple peaks, which demonstrates its capability to handle complex data patterns. The tail behavior of the predicted distribution is also consistent with the observed distribution, showing that the model performs well in accounting for rare or extreme events. Furthermore, the uncertainty of the predicted distribution is appropriately moderate, neither too narrow to indicate overconfidence nor too wide to suggest excessive variability. 
 
@@ -373,10 +381,10 @@ ggplot(data, aes(x = fitted(poisson_glm), y = pearson_residuals)) +
 # Posterior Predictive Checks
 pp_check(poisson_glm, plotfun = "dens_overlay", nreps = 100) +
   labs(
-    x = "Usage",  
-    y = "Estimated density"         
+    x = "Usage",
+    y = "Estimated density"
   ) +
-   yaxis_text()
+  yaxis_text()
 ```
 The credible intervals shown in @tbl-crediinte highlight several strengths of the model of the "Galbraith Rd / King's College Rd" station. Key variables such as hour, month, and year have narrow credible intervals that do not include zero, indicating their significant and consistent influence on the response variable. This demonstrates the model’s ability to effectively capture important trends and relationships in the data, particularly those related to time and seasonal effects. Additionally, the relatively small width of these intervals reflects the stability and reliability of parameter estimates, suggesting that the model is well-calibrated and robust in its predictions. The intercept, while having a broader credible interval, provides a reasonable baseline estimate, reflecting the overall level of the response variable.
 
@@ -392,11 +400,13 @@ posterior_draws <- as.matrix(poisson_glm)
 credible_intervals <- apply(posterior_draws, 2, function(x) quantile(x, probs = c(0.025, 0.975)))
 
 # Convert to data frame for display
-credible_intervals_df <- t(credible_intervals)  # Transpose to match the desired layout
+credible_intervals_df <- t(credible_intervals) # Transpose to match the desired layout
 
 # Display as a table
-kable(credible_intervals_df, format = "html", digits = 2, align = "c",
-      col.names = c("2.5%", "97.5%"))
+kable(credible_intervals_df,
+  format = "html", digits = 2, align = "c",
+  col.names = c("2.5%", "97.5%")
+)
 ```
 
 # Results{#sec-result}
@@ -410,15 +420,17 @@ This study ultimately predicted the usage volume of 27 shared bicycle stations w
 #| warning: false
 
 # Target stations
-ut_stations <- c("Madison Ave / Bloor St W", "Bloor St W / Huron St", "St. George St / Bloor St W", 
-                 "Sussex Ave / St George St", "Spadina Ave / Sussex Ave", "Spadina Ave / Harbord St - SMART",
-                 "St. George St / Hoskin Ave", "Spadina Ave / Willcocks St", "St. George St / Willcocks St",
-                 "Willcocks St / St. George St", "Queen's Park / Bloor St W", "Queen's Park Cres W / Hoskin Ave",
-                 "Wellesley St W / Queen's Park Cres", "Queen's Park Cres E / Grosvenor St - SMART", 
-                 "Bay St / Bloor St W (East Side)", "Bay St / Bloor St W (West Side)", "Bay St / Charles St W - SMART",
-                 "St. Joseph St / Bay St - SMART", "Bay St / St. Joseph St", "Bay St / Wellesley St W", 
-                 "Ursula Franklin St / Huron St - SMART", "Ursula Franklin St / St. George St - SMART", "Galbraith Rd / King's College Rd",
-                 "College St / Huron St", "College St / Henry St ", "Queens Park Cres / College St ", "University Ave / College St (East)")
+ut_stations <- c(
+  "Madison Ave / Bloor St W", "Bloor St W / Huron St", "St. George St / Bloor St W",
+  "Sussex Ave / St George St", "Spadina Ave / Sussex Ave", "Spadina Ave / Harbord St - SMART",
+  "St. George St / Hoskin Ave", "Spadina Ave / Willcocks St", "St. George St / Willcocks St",
+  "Willcocks St / St. George St", "Queen's Park / Bloor St W", "Queen's Park Cres W / Hoskin Ave",
+  "Wellesley St W / Queen's Park Cres", "Queen's Park Cres E / Grosvenor St - SMART",
+  "Bay St / Bloor St W (East Side)", "Bay St / Bloor St W (West Side)", "Bay St / Charles St W - SMART",
+  "St. Joseph St / Bay St - SMART", "Bay St / St. Joseph St", "Bay St / Wellesley St W",
+  "Ursula Franklin St / Huron St - SMART", "Ursula Franklin St / St. George St - SMART", "Galbraith Rd / King's College Rd",
+  "College St / Huron St", "College St / Henry St ", "Queens Park Cres / College St ", "University Ave / College St (East)"
+)
 
 result <- data_frame(station_name = ut_stations, time = as.POSIXct("2025-09-26 04:00:00", format = "%Y-%m-%d %H:%M:%S"))
 
@@ -435,7 +447,7 @@ for (station in ut_stations) {
   )
   target$predicted <- ceiling(exp(predict(md, newdata = target)))
   target$station_name <- station
-  target <- target %>% select(-hour,-day,-month,-year)
+  target <- target %>% select(-hour, -day, -month, -year)
   result[result$station_name == station, "prediction"] <- target$predicted
 }
 
@@ -445,7 +457,7 @@ data2024 <- start
 for (station in ut_stations) {
   date <- "2024-09-26 04:00:00"
   exists <- nrow(data2024[data2024$station_name == station & data2024$time == date, ]) > 0
-  
+
   if (!exists) {
     new_row <- data.frame(
       station_name = station,
@@ -474,21 +486,21 @@ data_long <- data_fi %>%
 # Create the plot
 ggplot(data_long, aes(x = station_name, y = value, fill = Note)) +
   geom_bar(stat = "identity", position = position_dodge(width = 0.7), width = 0.7) +
-  geom_text(aes(label = value), 
-            position = position_dodge(width = 0.7), 
-            vjust = -0.5, 
-            size = 3) + 
+  geom_text(aes(label = value),
+    position = position_dodge(width = 0.7),
+    vjust = -0.5,
+    size = 3
+  ) +
   labs(
     x = "Station Name",
     y = "Usage",
   ) +
   scale_fill_manual(
     values = c("count" = "pink", "prediction" = "skyblue"),
-    labels = c("count" = "Actual usage in 2024", "prediction" = "Predicted usage in 2025") 
+    labels = c("count" = "Actual usage in 2024", "prediction" = "Predicted usage in 2025")
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
-
 ```
 The prediction indicates an average increase of 2 uses per station across the 27 shared bike stations between 4:00 AM and 8:00 AM on September 26, 2025, compared to the same period in 2024. Specifically, 8 stations are projected to see an increase of 3 uses, 14 stations an increase of 2 uses, and 3 stations an increase of 1 use. Meanwhile, one station is expected to experience no change, and another is forecasted to see a decrease of 1 use. 
 
@@ -563,7 +575,7 @@ The detailed variables in the dataset (such as station ID, ride duration, and us
 
 ## Overview
 
-This study proposes an ideal data collection approach for bike-sharing systems, emphasizing key aspects like data diversity, reliable data collection, anomaly detection and correction, and ethical considerations.
+This study proposes an ideal data collection approach for bike-sharing systems, emphasizing key aspects such as data diversity, reliable data collection, anomaly detection and correction, and ethical considerations. Additionally, the study presents an ideal budget structure, a comprehensive checklist for data collection, and an ideal data framework.
 
 ## Data Diversity
 
@@ -602,6 +614,42 @@ Data collection in bike-sharing systems must take ethical considerations into ac
 For **sustainable data collection**, it is important to optimize both infrastructure and data management. Solar-powered equipment at docking stations can reduce dependence on traditional power sources by using clean energy for data collection. Dynamic data collection mechanisms that adjust frequency based on demand can help avoid unnecessary energy use. For example, reducing data collection during off-peak hours and increasing it during peak times can help balance operational needs while minimizing resource consumption. Sharing data collection infrastructure with other city services, such as traffic and environmental monitoring, can also reduce redundant investments.
 
 In terms of **user privacy protection**, both technical and management measures are necessary. Anonymization techniques should replace identifiable information with pseudonyms, and differential privacy can be used to add noise to the dataset, preventing re-identification of users. Following the principle of data minimization, only essential data should be collected—for instance, avoiding the collection of detailed home addresses. Clear privacy policies should inform users about data collection, use, and storage, while allowing them to access or delete their personal data. Regular third-party audits can assess privacy measures and identify areas for improvement, building user trust through transparency.
+
+## Proposed Budget Estimation for Data Collection
+When planning the budget for data collection in a bike-sharing system, several key components must be considered, including hardware, data storage and processing, software development and maintenance, personnel costs, and third-party services. Below is a detailed budget estimate:
+
+1. **Hardware**
+   - **IoT Sensors and GPS Modules:** Each bike requires basic sensors (e.g., accelerometers, GPS modules), costing approximately 50-100 CAD per unit. For a system with 1,000 bikes, the initial investment is estimated at 50,000-100,000 CAD.
+   - **Station Sensors and Networking Equipment:** Each station requires sensors, wireless communication modules, and network base stations, with costs ranging from 500-1,000 CAD per station. For 100 stations, this totals 50,000-100,000 CAD.
+   - **Renewable Energy Systems (Optional):** Installing solar power systems at stations can cost 1,000-2,000 CAD per unit. For 100 stations, the cost would be 100,000-200,000 CAD.
+
+2. **Data Storage and Processing**
+   - **Cloud Storage:** Cloud services for storing and managing data depend on the data volume. Assuming 1GB of data is collected daily (including bike, station, and environmental data), annual storage costs are estimated at 5,000-10,000 CAD.
+   - **Data Processing and Analysis:** Cloud computing or local server capabilities for data processing may require an initial setup cost of 10,000-30,000 CAD, with annual operating costs of 10,000-20,000 CAD.
+
+3. **Software Development and Maintenance**
+   - **Data Collection and Analysis Platform:** Developing a platform for real-time data collection and analysis can cost 50,000-100,000 CAD initially.
+   - **System Maintenance and Updates:** Annual maintenance costs are estimated at 10,000-30,000 CAD, including bug fixes, new feature development, and performance optimization.
+
+4. **Personnel Support**
+   - **Technical Team:** A team of five professionals, including data engineers, software developers, and project managers, may have an average annual salary of 60,000-100,000 CAD per person. The annual personnel budget is 300,000-500,000 CAD.
+   - **Third-Party Support:** Outsourced services or consultancy support may cost 20,000-50,000 CAD annually.
+
+5. **Third-Party Services**
+   - **API Integration:** Subscriptions for weather, traffic congestion, and air quality data APIs typically cost 1,000-5,000 CAD annually. Comprehensive API integration costs can range from 5,000-20,000 CAD annually.
+   - **Privacy and Compliance Audits:** Engaging third-party firms to conduct privacy protection and compliance audits costs approximately 10,000-20,000 CAD per audit, with an annual budget of 20,000-50,000 CAD.
+
+6. **Operations and Miscellaneous Costs**
+   - **Station Maintenance:** Includes sensor calibration and hardware upkeep, with an annual budget of 20,000-50,000 CAD.
+   - **Training Costs:** Training technical and management teams on data platform usage and privacy protocols may require 10,000-20,000 CAD annually.
+
+**Total Budget Estimate**
+
+- **Initial Investment (Hardware and Development):** 200,000-500,000 CAD, depending on system scale.
+
+- **Annual Operating and Maintenance Costs:** 100,000-300,000 CAD, covering personnel, data processing, storage, and hardware upkeep.
+
+This budget estimate is designed for a medium-sized bike-sharing system and may vary depending on the number of bikes, stations, data requirements, and operational scale. Adjustments can be made to fit specific project needs.
 
 ## A Proposed Idealized Data Collection Checklist
 
@@ -693,7 +741,6 @@ bike_share_part1 <- simulate_bike_share_data(5)
 
 # Display first table
 kable(bike_share_part1)
-
 ```
 
 ```{r}
@@ -703,7 +750,7 @@ kable(bike_share_part1)
 #| label: tbl-p2
 #| tbl-cap: "Simulated Ideal Dataset Part 2"
 
-#Simulated Ideal Dataset Part 2.
+# Simulated Ideal Dataset Part 2.
 bike_share_part2 <- data.frame(
   End_Station_ID = sample(100:200, 5, replace = TRUE),
   End_Station_Name = paste("Station", sample(100:200, 5, replace = TRUE)),
@@ -714,7 +761,6 @@ bike_share_part2 <- data.frame(
 
 # Display second table
 kable(bike_share_part2)
-
 ```
 
 ```{r}
@@ -723,7 +769,7 @@ kable(bike_share_part2)
 #| echo: false
 #| label: tbl-p3
 #| tbl-cap: "Simulated Ideal Dataset Part 3"
-#Simulated Ideal Dataset Part 3.
+# Simulated Ideal Dataset Part 3.
 bike_share_part3 <- data.frame(
   Trip_Duration_s = sample(300:3600, 5, replace = TRUE),
   Trip_Distance_m = sample(500:10000, 5, replace = TRUE),
@@ -733,7 +779,6 @@ bike_share_part3 <- data.frame(
 
 # Display third table
 kable(bike_share_part3)
-
 ```
 
 ```{r}
@@ -742,7 +787,7 @@ kable(bike_share_part3)
 #| echo: false
 #| label: tbl-p4
 #| tbl-cap: "Simulated Ideal Dataset Part 4"
-#Simulated Ideal Dataset Part 4.
+# Simulated Ideal Dataset Part 4.
 bike_share_part4 <- data.frame(
   Weather_Conditions = sample(c("Sunny", "Cloudy", "Rainy"), 5, replace = TRUE),
   Air_Quality_Index = sample(10:100, 5, replace = TRUE),
@@ -752,7 +797,6 @@ bike_share_part4 <- data.frame(
 
 # Display fourth table
 kable(bike_share_part4)
-
 ```
 
 ```{r}
@@ -761,7 +805,7 @@ kable(bike_share_part4)
 #| echo: false
 #| label: tbl-p5
 #| tbl-cap: "Simulated Ideal Dataset Part 5"
-#Simulated Ideal Dataset Part 5.
+# Simulated Ideal Dataset Part 5.
 bike_share_part5 <- data.frame(
   Available_Docks_at_End_Station = sample(0:20, 5, replace = TRUE),
   Device_Status = sample(c("Operational", "Faulty"), 5, replace = TRUE),
@@ -770,8 +814,6 @@ bike_share_part5 <- data.frame(
 
 # Display fifth table
 kable(bike_share_part5)
-
-
 ```
 
 ```{r}
@@ -780,7 +822,7 @@ kable(bike_share_part5)
 #| echo: false
 #| label: tbl-p6
 #| tbl-cap: "Simulated Ideal Dataset Part 6"
-#Simulated Ideal Dataset Part 6.
+# Simulated Ideal Dataset Part 6.
 bike_share_part6 <- data.frame(
   User_Gender = sample(c("Male", "Female", "Other"), 5, replace = TRUE),
   Anomalies = sample(c("None", "Sensor Error", "Docking Failure"), 5, replace = TRUE),
@@ -790,8 +832,6 @@ bike_share_part6 <- data.frame(
 
 # Display sixth table
 kable(bike_share_part6)
-
-
 ```
 
 # Detailed Data Cleaning Process {#sec-dcp}

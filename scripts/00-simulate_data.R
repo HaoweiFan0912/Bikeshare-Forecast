@@ -20,25 +20,29 @@ lapply(packages, library, character.only = TRUE)
 
 
 #### Simulate data ####
-#Stations of Interest 
-ut_stations <- c("Madison Ave / Bloor St W", "Bloor St W / Huron St", "St. George St / Bloor St W", 
-                 "Sussex Ave / St George St", "Spadina Ave / Sussex Ave", "Spadina Ave / Harbord St - SMART",
-                 "St. George St / Hoskin Ave", "Spadina Ave / Willcocks St", "St. George St / Willcocks St",
-                 "Willcocks St / St. George St", "Queen's Park / Bloor St W", "Queen's Park Cres W / Hoskin Ave",
-                 "Wellesley St W / Queen's Park Cres", "Queen's Park Cres E / Grosvenor St - SMART", 
-                 "Bay St / Bloor St W (East Side)", "Bay St / Bloor St W (West Side)", "Bay St / Charles St W - SMART",
-                 "St. Joseph St / Bay St - SMART", "Bay St / St. Joseph St", "Bay St / Wellesley St W", 
-                 "Ursula Franklin St / Huron St - SMART", "Ursula Franklin St / St. George St - SMART", "Galbraith Rd / King's College Rd",
-                 "College St / Huron St", "College St / Henry St ", "Queens Park Cres / College St ", "University Ave / College St (East)")
+# Stations of Interest
+ut_stations <- c(
+  "Madison Ave / Bloor St W", "Bloor St W / Huron St", "St. George St / Bloor St W",
+  "Sussex Ave / St George St", "Spadina Ave / Sussex Ave", "Spadina Ave / Harbord St - SMART",
+  "St. George St / Hoskin Ave", "Spadina Ave / Willcocks St", "St. George St / Willcocks St",
+  "Willcocks St / St. George St", "Queen's Park / Bloor St W", "Queen's Park Cres W / Hoskin Ave",
+  "Wellesley St W / Queen's Park Cres", "Queen's Park Cres E / Grosvenor St - SMART",
+  "Bay St / Bloor St W (East Side)", "Bay St / Bloor St W (West Side)", "Bay St / Charles St W - SMART",
+  "St. Joseph St / Bay St - SMART", "Bay St / St. Joseph St", "Bay St / Wellesley St W",
+  "Ursula Franklin St / Huron St - SMART", "Ursula Franklin St / St. George St - SMART", "Galbraith Rd / King's College Rd",
+  "College St / Huron St", "College St / Henry St ", "Queens Park Cres / College St ", "University Ave / College St (East)"
+)
 # Simulate all 4-hour intervals from January 1, 2017, to September 30, 2024.
-all_intervals <- seq(from = as.POSIXct("2017-01-01 00:00:00"), 
-                     to = as.POSIXct("2024-09-30 24:00:00"), 
-                     by = "4 hours")
+all_intervals <- seq(
+  from = as.POSIXct("2017-01-01 00:00:00"),
+  to = as.POSIXct("2024-09-30 24:00:00"),
+  by = "4 hours"
+)
 all_intervals <- all_intervals - ifelse(as.numeric(format(all_intervals, "%H")) %% 2 == 1, 3600, 0)
 
 # Merge time and station——name.
 all_combinations_start <- expand.grid(from_station_name = ut_stations, interval = all_intervals)
-all_combinations_start$interval <- format(all_combinations_start$interval, format="%Y-%m-%d %H:%M:%S")
+all_combinations_start$interval <- format(all_combinations_start$interval, format = "%Y-%m-%d %H:%M:%S")
 all_combinations_start <- all_combinations_start %>%
   mutate(count = NA)
 
