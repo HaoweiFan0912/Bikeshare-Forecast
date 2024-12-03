@@ -335,7 +335,7 @@ In this section, the study selects "Galbraith Rd / King's College Rd" as the mos
 
 ```{r, fig.pos="H"}
 #| label: fig-PPvsFV
-#| fig-cap: "Pearson Residuals vs Fitted Values: \"Galbraith Rd / King's College Rd\" Model"
+#| fig-cap: "Pearson Residuals vs Fitted Values for \"Galbraith Rd / King's College Rd\" Model"
 #| echo: false
 #| message: false
 #| warning: false
@@ -366,7 +366,7 @@ ggplot(data, aes(x = fitted(poisson_glm), y = pearson_residuals)) +
 
 ```{r, fig.pos="H"}
 #| label: fig-PPplot
-#| fig-cap: "Posterior Predictive Checks: \"Galbraith Rd / King's College Rd\" Model"
+#| fig-cap: "Posterior Predictive Checks for \"Galbraith Rd / King's College Rd\" Model"
 #| echo: false
 #| message: false
 #| warning: false
@@ -385,7 +385,7 @@ The credible intervals shown in @tbl-crediinte highlight several strengths of th
 #| message: false
 #| echo: false
 #| label: tbl-crediinte
-#| tbl-cap: "Credible intervals of model coefficients: \"Galbraith Rd / King's College Rd\" Model"
+#| tbl-cap: "Credible intervals of model coefficients for \"Galbraith Rd / King's College Rd\" Model"
 posterior_draws <- as.matrix(poisson_glm)
 
 # Compute credible intervals
