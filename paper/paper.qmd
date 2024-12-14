@@ -53,7 +53,11 @@ The structure of this paper is as follows: @sec-data outlines the data sources, 
 ## Overview
 The dataset used in this study is named "Bike Share Toronto Ridership Data" [@bikesharedata]. It comes from opendatatoronto [@opendata], uploaded by Toronto Parking Authority[@greenp] and collected by Bike Share Toronto[@bike]. It records every bike-sharing usage in the Toronto area from 2015 to September 30, 2024, with a total of 28,017,329 records. The variables included in the data differ across years, but they all contain the following variables: Trip ID, Trip Duration, Trip Start Station ID, Trip Start Time, Trip Start Station Location, Trip End Station ID, Trip End Time, Trip End Station Location, Bike ID, and User Type.
 
-There are many similar datasets available, but they pose significant limitations in the context of this study. Bike-sharing service providers worldwide have made their operational data publicly available for research purposes. For instance, the Shenzhen Municipal Transport Bureau in China released a dataset containing partial bike-sharing order information from January to August 2021. This dataset includes eight variables: user ID, start time, start longitude, start latitude, end time, end longitude, end latitude, and company ID, with a total of approximately 240 million records [@szdd]. While this dataset offers a rich variety of variables, it has limitations that make it unsuitable for this research. The data only covers an eight-month period, which is insufficient to capture long-term trends in bike-sharing usage. Additionally, university campuses in China are typically closed environments, unlike the open urban settings of Toronto, making the data less generalizable for this study's research context. Similar issues are present in other bike-sharing datasets from different regions. These include limited temporal coverage, which restricts long-term analysis, strong regional characteristics influenced by local cultural habits, and significant variations in data quality and structure due to fierce market competition among bike-sharing companies. These factors make it challenging to integrate data across companies or regions. Therefore, while these datasets may hold value for other studies, they do not meet the requirements of this research.
+There are many similar datasets available, but they pose significant limitations in the context of this study. Bike-sharing service providers worldwide have made their operational data publicly available for research purposes. For instance, the Shenzhen Municipal Transport Bureau in China released a dataset containing partial bike-sharing order information from January to August 2021. This dataset includes eight variables: user ID, start time, start longitude, start latitude, end time, end longitude, end latitude, and company ID, with a total of approximately 240 million records [@szdd].
+
+While this dataset offers a rich variety of variables, it has limitations that make it unsuitable for this research. The data only covers an eight-month period, which is insufficient to capture long-term trends in bike-sharing usage. Additionally, university campuses in China are typically closed environments, unlike the open urban settings of Toronto, making the data less generalizable for this study's research context.
+
+Similar issues are present in other bike-sharing datasets from different regions. These include limited temporal coverage, which restricts long-term analysis, strong regional characteristics influenced by local cultural habits, and significant variations in data quality and structure due to fierce market competition among bike-sharing companies. These factors make it challenging to integrate data across companies or regions. Therefore, while these datasets may hold value for other studies, they do not meet the requirements of this research.
 
 This study follows the workflow of Telling Stories with Data [@tellingstories], using its initial folder structure and part of its code. Data downloading, cleaning, modeling, and visualization were carried out using R [@citeR]. The following R libraries were also used alongside R:
 
@@ -157,7 +161,11 @@ kable(summ)
 ```
 
 
-@fig-daily_usage shows the daily usage totals of 27 shared bicycle stations from January 1, 2017, to September 30, 2024. It can be observed that the usage of the 27 bike-sharing stations at the University of Toronto's St. George campus has shown a steady upward trend, with an average increase of 1 use every 20 days. At the same time, there are clear seasonal variations: usage is higher in the spring and summer months (April to September) and significantly lower in the fall and winter months (October to March). Additionally, there was an abnormal surge in usage from June to September 2024, which can be attributed to two main reasons. First, historical data indicates that usage typically spikes in August and September each year, likely due to increased demand from students returning to campus for the start of the academic year. Second, during the same period in 2024, Bike Share Toronto added 52 new stations, most of which were located near the St. George campus, significantly enhancing the network's coverage and convenience[@bike]. These two factors combined led to the appearance of anomalies in August and September 2024.
+@fig-daily_usage shows the daily usage totals of 27 shared bicycle stations from January 1, 2017, to September 30, 2024. It can be observed that the usage of the 27 bike-sharing stations at the University of Toronto's St. George campus has shown a steady upward trend, with an average increase of 1 use every 20 days. At the same time, there are clear seasonal variations: usage is higher in the spring and summer months (April to September) and significantly lower in the fall and winter months (October to March).
+
+Additionally, @fig-daily_usage shows an abnormal surge in usage from June to September 2024, which can be attributed to two main reasons. First, historical data indicates that usage typically spikes in August and September each year, likely due to increased demand from students returning to campus for the start of the academic year. Second, during the same period in 2024, Bike Share Toronto added 52 new stations, most of which were located near the St. George campus, significantly enhancing the network's coverage and convenience[@bike]. These two factors combined led to the appearance of anomalies in August and September 2024.
+
+
 ```{r, fig.pos="H"}
 #| label: fig-daily_usage
 #| fig-cap: "Daily usage from January 2017 to September 2024"
@@ -286,7 +294,7 @@ merged_data <- merged_data %>%
 
 ggplot(merged_data, aes(x = station_name, y = count_difference)) +
   geom_bar(stat = "identity", fill = "steelblue") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5)) +
   labs(
     x = "Station Name",
     y = "Parking volume minus departure volume"
@@ -332,9 +340,9 @@ This study employs the Poisson model, which assumes that the events under invest
 
 The model was chosen based on the nature of the variable *count*, as this study hypothesizes that a Poisson distribution may better explain its discrete and non-negative characteristics. The selection of predictors is informed by the data structure: *year* is included to capture the overall upward trend over time, *month* and *day* account for seasonal variations, and *hour* reflects daily usage differences. This approach ensures that the model effectively addresses the temporal and seasonal dynamics inherent in the data.
 
-This study considered using the ARIMA (autoregressive integrated moving average) model as an alternative but ultimately decided against it due to its limitations in capturing the specific characteristics of bike-sharing usage data. Although the ARIMA model has advantages in time series analysis, allowing for more accurate short-term predictions with parameters that have clearer interpretability. Bike-sharing usage exhibits significant seasonal patterns, time-of-day effects, and count-based characteristics, while ARIMA models are primarily suited for stationary time series with linear autocorrelations. ARIMA struggles to effectively address non-stationary trends and overdispersion, such as the marked decrease in usage during winter. Although extensions like SARIMA (Seasonal ARIMA) can account for seasonality, they still cannot directly handle the count-based nature of the data. In contrast, Bayesian Poisson regression is specifically designed for count data, allowing for the flexible integration of variables such as year, month, and specific four-hour intervals. Additionally, the Bayesian framework provides posterior distributions, offering deeper 
-ideas into parameter uncertainty and variability, which are 
-important for policy decisions. Therefore, Bayesian Poisson regression is more suitable for this study than the ARIMA model.
+This study considered using the ARIMA (autoregressive integrated moving average) model as an alternative but ultimately decided against it due to its limitations in capturing the specific characteristics of bike-sharing usage data. Although the ARIMA model has advantages in time series analysis, allowing for more accurate short-term predictions with parameters that have clearer interpretability, bike-sharing usage exhibits significant seasonal patterns, time-of-day effects, and count-based characteristics. ARIMA models are primarily suited for stationary time series with linear autocorrelations. ARIMA struggles to effectively address non-stationary trends and overdispersion, such as the marked decrease in usage during winter. Although extensions like SARIMA (Seasonal ARIMA) can account for seasonality, they still cannot directly handle the count-based nature of the data.
+
+In contrast, Bayesian Poisson regression is specifically designed for count data, allowing for the flexible integration of variables such as year, month, and specific four-hour intervals. Additionally, the Bayesian framework provides posterior distributions, offering deeper thoughts into parameter uncertainty and variability, which are important for policy decisions. Therefore, Bayesian Poisson regression is more suitable for this study than the ARIMA model.
 
 ## Validation
 In this section, the study selects "Galbraith Rd / King's College Rd" as the most representative station to validate the model. This station was chosen for several reasons: it is centrally located within the University of Toronto's St. George campus, it ranks among the top five stations in terms of data volume, and it has maintained the shortest average maintenance time every six months since its establishment[@bike].
@@ -516,7 +524,7 @@ Seasonal data also show that bike usage significantly decreases during winter, a
 
 This study provides actionable recommendations for improving user experience in semi-closed environments like university campuses. Unlike urban open systems, bike usage in campuses is strongly influenced by fixed schedules such as class timings and campus events. This approach can be further extended to other similar semi-closed areas, such as industrial parks, manufacturing facilities, and residential complexes, where movement patterns are often dictated by predictable schedules, shifts, or local routines.
 
-In these environments, bike-sharing systems can be optimized to align with peak demand periods, such as shift changes in factories, scheduled breaks in office parks, or recreational times in residential areas. By leveraging predictive analytics administrators can strategically allocate bikes and docking stations to match demand patterns, ensuring users have access when and where they need it most.
+In these environments, bike-sharing systems can be optimized to align with peak demand periods, such as shift changes in factories, scheduled breaks in office parks, or recreational times in residential areas. By utilizing predictive analytics administrators can strategically allocate bikes and docking stations to match demand patterns, ensuring users have access when and where they need it most.
 
 Moreover, this methodology is cost-effective. By targeting specific time windows and locations with higher demand, resources can be distributed more efficiently, reducing waste and operational costs. This reduces the need for large-scale deployment of bikes and infrastructure, which is often necessary in open urban systems. Instead, investments can be focused on key high-demand areas within these semi-closed environments, maximizing return on investment while enhancing user satisfaction.
 
@@ -541,11 +549,10 @@ Additionally, this research is limited to employing Bayesian Poisson regression.
 
 Another potential avenue for future research is extending the study beyond the campus. Comparing usage patterns across multiple university campuses could uncover broader trends and differences in bike-sharing demand. Such comparative analyses would help researchers and policymakers determine whether the usage patterns observed at the University of Toronto are unique or represent generalizable phenomena across other campuses.
 
-
 \newpage
 
-
 \appendix 
+
 # Appendix {-}
 
 # Data Collection Methodology
@@ -575,7 +582,7 @@ The detailed variables in the dataset (such as station ID, ride duration, and us
 
 ## Overview
 
-This study proposes an ideal data collection approach for bike-sharing systems, emphasizing key aspects such as data diversity, reliable data collection, anomaly detection and correction, and ethical considerations. Additionally, the study presents an ideal budget structure, a comprehensive checklist for data collection, and an ideal data framework.
+This study proposes an ideal data collection approach for bike-sharing systems, emphasizing key aspects such as data diversity, reliable data collection, anomaly detection and correction, and ethical considerations. Additionally, the study presents an ideal budget structure, a thorough checklist for data collection, and an ideal data framework.
 
 ## Data Diversity
 
@@ -636,7 +643,7 @@ When planning the budget for data collection in a bike-sharing system, several k
    - **Third-Party Support:** Outsourced services or consultancy support may cost 20,000-50,000 CAD annually.
 
 5. **Third-Party Services**
-   - **API Integration:** Subscriptions for weather, traffic congestion, and air quality data APIs typically cost 1,000-5,000 CAD annually. Comprehensive API integration costs can range from 5,000-20,000 CAD annually.
+   - **API Integration:** Subscriptions for weather, traffic congestion, and air quality data APIs typically cost 1,000-5,000 CAD annually. API integration costs can range from 5,000-20,000 CAD annually.
    - **Privacy and Compliance Audits:** Engaging third-party firms to conduct privacy protection and compliance audits costs approximately 10,000-20,000 CAD per audit, with an annual budget of 20,000-50,000 CAD.
 
 6. **Operations and Miscellaneous Costs**
