@@ -1,5 +1,5 @@
 ---
-title: "Predicting Bike Usage at UofT St. George with Bayesian Poisson Regression"
+title: "Predicting Bike Usage at UofT St. George Campus with Bayesian Poisson Regression"
 subtitle: "Daily usage grows by one every 20 days, drops to between 0 and 3 in winter, with 79% occurring between 8 AM and 8 PM"
 author: 
   - Haowei Fan
