@@ -4,7 +4,7 @@ subtitle: "Daily usage grows by one every 20 days, drops to between 0 and 3 in w
 author: 
   - Haowei Fan
 thanks: "Code and data are available at: https://github.com/HaoweiFan0912/Bikeshare-Forecast.git"
-date: today
+date: December 14, 2024
 date-format: long
 abstract: "University of Toronto's St. George campus students and staff frequently encounter challenges in locating available bike-sharing parking spots upon arrival and bikes upon leaving [@elassi2017bike], underscoring the necessity for accurate predictions of future bike-sharing demand to optimize campus commuting infrastructure. This study employs Bayesian Poisson regression to predict the utilization of bike-sharing stations at 27 locations across campus for specific years, months, and four-hour intervals of the day. The results show that daily bike-sharing usage on campus increases by one every 20 days but decreases to between 0 and 3 in winter months, and 79% of peak usage consistently observed between 8:00 AM and 8:00 PM daily. Specifically, on September 26, 2025, between 4:00 and 8:00 AM, the usage of 8 stations is projected to increase by 3 bikes, 14 stations by 2 bikes, 3 stations by 1 bike, while 1 station will remain unchanged, and 1 station will see a decrease by 1 bike, compared to the same timeframe in 2024."
 format: pdf
@@ -38,7 +38,7 @@ stop <- read_parquet(here::here("data/02-analysis_data/stop.parquet"))
 # Introduction
 
 ## Overview
-Bike-sharing services have experienced growth in the Toronto region, with ridership rising dramatically from approximately 665,000 trips in 2015 to over 4.5 million in 2022, according to a study by the University of Toronto's School of Cities[@liu2023bike]. This increase highlights the need for analyses to optimize bike-sharing systems and guide policy decisions that can further enhance urban mobility[@xiamen]. While city-wide studies provide suggestions, research from Hangzhou, China, has demonstrated that bike-sharing usage patterns can vary significantly between urban areas and university campuses[@hangzhou]. These differences suggest that general urban studies conducted in the Toronto region may not fully capture the unique dynamics of campus-based bike-sharing systems. Therefore, to address this unexplored areas in the literature, this study focuses on the University of Toronto St. George Campus as a case study, analyzing bike-sharing usage within the campus in Toronto to provide a detailed understanding of its role in campus mobility and inform policies tailored to similar settings.
+Bike-sharing services have experienced growth in the Toronto region, with ridership rising dramatically from approximately 665,000 trips in 2015 to over 4.5 million in 2022, according to a study by the University of Toronto's School of Cities [@liu2023bike]. This increase highlights the need for analyses to optimize bike-sharing systems and guide policy decisions that can further enhance urban mobility [@xiamen]. While city-wide studies provide suggestions, research from Hangzhou, China, has demonstrated that bike-sharing usage patterns can vary significantly between urban areas and university campuses [@hangzhou]. These differences suggest that general urban studies conducted in the Toronto region may not fully capture the unique dynamics of campus-based bike-sharing systems. Therefore, to address this unexplored areas in the literature, this study focuses on the University of Toronto St. George Campus as a case study, analyzing bike-sharing usage within the campus in Toronto to provide a detailed understanding of its role in campus mobility and inform policies tailored to similar settings.
 
 The estimand of this study aims to predict the usage of a specific bike-sharing station on the University of Toronto campus during a particular 4-hour interval. By transforming time into components such as year, month, day, and the specific 4-hour interval of the day, the analysis incorporates overall trends, seasonal effects, and hourly variations in station usage. The primary objective is to investigate temporal changes in the usage of 27 bike-sharing stations on campus, thereby providing policymakers with recommendations for optimizing bike allocation to enhance commuting efficiency. To achieve this estimand, the study extracts a sample of 27 bike-sharing stations within the University of Toronto campus from all bike-sharing usage data recorded between January 1, 2017, and September 30, 2024. A Bayesian Poisson regression model is then employed to predict station usage based on factors such as station location, year, month, day, and the specific 4-hour interval of the day.
 
@@ -51,7 +51,7 @@ The structure of this paper is as follows: @sec-data outlines the data sources, 
 # Data {#sec-data}
 
 ## Overview
-The dataset used in this study is named "Bike Share Toronto Ridership Data" [@bikesharedata]. It comes from opendatatoronto [@opendata], uploaded by Toronto Parking Authority[@greenp] and collected by Bike Share Toronto[@bike]. It records every bike-sharing usage in the Toronto area from 2015 to September 30, 2024, with a total of 28,017,329 records. The variables included in the data differ across years, but they all contain the following variables: Trip ID, Trip Duration, Trip Start Station ID, Trip Start Time, Trip Start Station Location, Trip End Station ID, Trip End Time, Trip End Station Location, Bike ID, and User Type.
+The dataset used in this study is named "Bike Share Toronto Ridership Data" [@bikesharedata]. It comes from opendatatoronto [@opendata], uploaded by Toronto Parking Authority [@greenp] and collected by Bike Share Toronto [@bike]. It records every bike-sharing usage in the Toronto area from 2015 to September 30, 2024, with a total of 28,017,329 records. The variables included in the data differ across years, but they all contain the following variables: Trip ID, Trip Duration, Trip Start Station ID, Trip Start Time, Trip Start Station Location, Trip End Station ID, Trip End Time, Trip End Station Location, Bike ID, and User Type.
 
 There are many similar datasets available, but they pose significant limitations in the context of this study. Bike-sharing service providers worldwide have made their operational data publicly available for research purposes. For instance, the Shenzhen Municipal Transport Bureau in China released a dataset containing partial bike-sharing order information from January to August 2021. This dataset includes eight variables: user ID, start time, start longitude, start latitude, end time, end longitude, end latitude, and company ID, with a total of approximately 240 million records [@szdd].
 
@@ -61,39 +61,39 @@ Similar issues are present in other bike-sharing datasets from different regions
 
 This study follows the workflow of Telling Stories with Data [@tellingstories], using its initial folder structure and part of its code. Data downloading, cleaning, modeling, and visualization were carried out using R [@citeR]. The following R libraries were also used alongside R:
 
-**tidyverse**[@tidyverse]: Used for data wrangling, cleaning, and analysis, integrating multiple data manipulation packages.
+**tidyverse** [@tidyverse]: Used for data wrangling, cleaning, and analysis, integrating multiple data manipulation packages.
 
-**dplyr**[@dplyr]: Used for data frame operations such as filtering, sorting, and aggregation.
+**dplyr** [@dplyr]: Used for data frame operations such as filtering, sorting, and aggregation.
 
-**arrow**[@arrow]: Used for reading and writing data in efficient formats like Parquet to speed up processing.
+**arrow** [@arrow]: Used for reading and writing data in efficient formats like Parquet to speed up processing.
 
-**stringr**[@stringr]: Used for handling and manipulating strings, allowing for text data cleaning and transformation.
+**stringr** [@stringr]: Used for handling and manipulating strings, allowing for text data cleaning and transformation.
 
-**readr**[@readr]: Used for fast reading of CSV and other text formats.
+**readr** [@readr]: Used for fast reading of CSV and other text formats.
 
-**lubridate**[@lubridate]: Used for handling and converting date-time data, simplifying time-related data analysis.
+**lubridate** [@lubridate]: Used for handling and converting date-time data, simplifying time-related data analysis.
 
-**brms**[@brms]: Used for building and estimating Bayesian regression models for flexible data analysis.
+**brms** [@brms]: Used for building and estimating Bayesian regression models for flexible data analysis.
 
-**rstanarm**[@rstanarm]: Used for Bayesian regression modeling, helping to understand uncertainty better.
+**rstanarm** [@rstanarm]: Used for Bayesian regression modeling, helping to understand uncertainty better.
 
-**bayesplot**[@bayesplot]: Used for visualizing posterior distributions and diagnostic plots of Bayesian models.
+**bayesplot** [@bayesplot]: Used for visualizing posterior distributions and diagnostic plots of Bayesian models.
 
-**ggplot2**[@ggplot2]: Used for creating various types of plots, supporting exploratory data analysis and result presentation.
+**ggplot2** [@ggplot2]: Used for creating various types of plots, supporting exploratory data analysis and result presentation.
 
-**RColorBrewer**[@RColorBrewer]: Used for generating color palettes to create visually distinct and appealing plots.
+**RColorBrewer** [@RColorBrewer]: Used for generating color palettes to create visually distinct and appealing plots.
 
-**knitr**[@knitr]: Used for generating dynamic reports, integrating analysis results into documents.
+**knitr** [@knitr]: Used for generating dynamic reports, integrating analysis results into documents.
 
-**kableExtra**[@kableExtra]: Used for enhancing the presentation of tables, making tables in reports more visually appealing.
+**kableExtra** [@kableExtra]: Used for enhancing the presentation of tables, making tables in reports more visually appealing.
 
-**scales**[@scales]: Used for formatting large numbers.
+**scales** [@scales]: Used for formatting large numbers.
 
-**reshape2**[@reshape]: Used for reshaping redata, particularly converting between wide and long formats
+**reshape2** [@reshape]: Used for reshaping redata, particularly converting between wide and long formats
 
-**testthat**[@tt]: Used to test whether the simulated data and analysis data meet the expected requirements.
+**testthat** [@tt]: Used to test whether the simulated data and analysis data meet the expected requirements.
 
-**styler**[@styler]: Used to organize code formatting and code comments.
+**styler** [@styler]: Used to organize code formatting and code comments.
 
 Additionally, this project utilized OpenAI's ChatGPT-4 [@openai2024chatgpt] to assist in writing parts of the code.
 
@@ -163,7 +163,7 @@ kable(summ)
 
 @fig-daily_usage shows the daily usage totals of 27 shared bicycle stations from January 1, 2017, to September 30, 2024. It can be observed that the usage of the 27 bike-sharing stations at the University of Toronto's St. George campus has shown a steady upward trend, with an average increase of 1 use every 20 days. At the same time, there are clear seasonal variations: usage is higher in the spring and summer months (April to September) and significantly lower in the fall and winter months (October to March).
 
-Additionally, @fig-daily_usage shows an abnormal surge in usage from June to September 2024, which can be attributed to two main reasons. First, historical data indicates that usage typically spikes in August and September each year, likely due to increased demand from students returning to campus for the start of the academic year. Second, during the same period in 2024, Bike Share Toronto added 52 new stations, most of which were located near the St. George campus, significantly enhancing the network's coverage and convenience[@bike]. These two factors combined led to the appearance of anomalies in August and September 2024.
+Additionally, @fig-daily_usage shows an abnormal surge in usage from June to September 2024, which can be attributed to two main reasons. First, historical data indicates that usage typically spikes in August and September each year, likely due to increased demand from students returning to campus for the start of the academic year. Second, during the same period in 2024, Bike Share Toronto added 52 new stations, most of which were located near the St. George campus, significantly enhancing the network's coverage and convenience [@bike]. These two factors combined led to the appearance of anomalies in August and September 2024.
 
 
 ```{r, fig.pos="H"}
@@ -304,7 +304,7 @@ ggplot(merged_data, aes(x = station_name, y = count_difference)) +
 ```
 
 # Model {#sec-model}
-In the process of model development, this study utilized R [@citeR] and the following R packages:brms[@brms] and rstanarm[@rstanarm] were used for model construction. bayesplot[@bayesplot], tidyverse[@tidyverse], ggplot2[@ggplot2], knitr[@knitr], and kableExtra[@kableExtra] were used for verifying model assumptions and model validation.
+In the process of model development, this study utilized R [@citeR] and the following R packages:brms [@brms] and rstanarm [@rstanarm] were used for model construction. bayesplot [@bayesplot], tidyverse [@tidyverse], ggplot2 [@ggplot2], knitr [@knitr], and kableExtra [@kableExtra] were used for verifying model assumptions and model validation.
 
 ## Model Descriptions
 Equation\ref{eq:poisson} is the model used in this study:
@@ -345,7 +345,7 @@ This study considered using the ARIMA (autoregressive integrated moving average)
 In contrast, Bayesian Poisson regression is specifically designed for count data, allowing for the flexible integration of variables such as year, month, and specific four-hour intervals. Additionally, the Bayesian framework provides posterior distributions, offering deeper thoughts into parameter uncertainty and variability, which are important for policy decisions. Therefore, Bayesian Poisson regression is more suitable for this study than the ARIMA model.
 
 ## Validation
-In this section, the study selects "Galbraith Rd / King's College Rd" as the most representative station to validate the model. This station was chosen for several reasons: it is centrally located within the University of Toronto's St. George campus, it ranks among the top five stations in terms of data volume, and it has maintained the shortest average maintenance time every six months since its establishment[@bike].
+In this section, the study selects "Galbraith Rd / King's College Rd" as the most representative station to validate the model. This station was chosen for several reasons: it is centrally located within the University of Toronto's St. George campus, it ranks among the top five stations in terms of data volume, and it has maintained the shortest average maintenance time every six months since its establishment [@bike].
 
 @fig-PPvsFV illustrates the comparison between Pearson residuals and fitted values for the model of the "Galbraith Rd / King's College Rd" station. It demonstrates several strengths of the model. First, the residuals are primarily distributed around the zero line, indicating that the model does not exhibit significant systematic bias in its predictions. This suggests that the model is generally effective at capturing the central trends of the data. Second, the residual distribution shows a consistent linear pattern, reflecting the model's stability across different levels of fitted values. This consistency implies that the model performs reliably in its predictions for various ranges of the response variable. Third, the model successfully captures localized patterns in the data, as evidenced by the structured yet controlled behavior of the residuals. 
 
